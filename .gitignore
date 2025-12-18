@@ -44,3 +44,9 @@ imgui.ini
 # testing
 .coverage*
 htmlcov/
+
+.env
+temp/
+check_gpu.py
+*.png
+scripts.sh

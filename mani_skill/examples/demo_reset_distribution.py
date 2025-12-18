@@ -30,7 +30,7 @@ def main(args):
     env: BaseEnv = gym.make(
         args.env_id,
         num_envs=1,
-        obs_mode="state",
+        obs_mode="rgb",
         reward_mode="none",
         render_mode=args.render_mode,
         sensor_configs=dict(shader_pack=args.shader),
@@ -54,8 +54,9 @@ def main(args):
                 break
     else:
         for _ in range(args.num_resets):
-            env.reset()
-            env.render_images.append(env.capture_image())
+            obs, _ = env.reset()
+            # env.render_images.append(env.capture_image())
+            env.render_images.append(obs['sensor_data']['base_camera']['rgb'][0].cpu().numpy())
         name = f"{args.env_id}_reset_distribution"
         env.flush_video(name=name)
         print(f"Saved video to {env.output_dir}/{name}.mp4")

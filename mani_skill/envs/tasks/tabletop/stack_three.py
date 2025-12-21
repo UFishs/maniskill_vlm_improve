@@ -16,7 +16,7 @@ from mani_skill.utils.structs.pose import Pose
 from mani_skill.utils.structs.types import SimConfig
 
 
-@register_env("StackThree-v1", max_episode_steps=300)
+@register_env("StackThree-v1", max_episode_steps=500)
 class StackThreeEnv(BaseEnv):
     """
     **Task Description:**

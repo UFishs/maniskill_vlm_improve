@@ -61,7 +61,7 @@ def make_eval_envs(
             [
                 cpu_make_env(
                     env_id,
-                    seed,
+                    seed + 20222022,
                     video_dir if seed == 0 else None,
                     env_kwargs,
                     other_kwargs,

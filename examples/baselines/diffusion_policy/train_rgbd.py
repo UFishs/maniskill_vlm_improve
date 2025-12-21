@@ -76,9 +76,9 @@ class Args:
     pred_horizon: int = (
         16  # 16->8 leads to worse performance, maybe it is like generate a half image; 16->32, improvement is very marginal
     )
-    diffusion_step_embed_dim: int = 64  # not very important
+    diffusion_step_embed_dim: int = 256  # not very important
     unet_dims: List[int] = field(
-        default_factory=lambda: [64, 128, 256]
+        default_factory=lambda: [256, 512, 1024]
     )  # default setting is about ~4.5M params
     n_groups: int = (
         8  # jigu says it is better to let each group have at least 8 channels; it seems 4 and 8 are simila
@@ -125,6 +125,7 @@ class SmallDemoDataset_DiffusionPolicy(Dataset):  # Load everything into memory
     def __init__(self, data_path, obs_process_fn, obs_space, include_rgb, include_depth, device, num_traj):
         self.include_rgb = include_rgb
         self.include_depth = include_depth
+        self.device = device
         from diffusion_policy.utils import load_demo_dataset
         trajectories = load_demo_dataset(data_path, num_traj=num_traj, concat=False)
         # trajectories['observations'] is a list of dict, each dict is a traj, with keys in obs_space, values with length L+1
@@ -143,9 +144,9 @@ class SmallDemoDataset_DiffusionPolicy(Dataset):  # Load everything into memory
                     _obs_traj_dict["depth"].astype(np.float32)
                 ).to(device=device, dtype=torch.float16)
             if self.include_rgb:
-                _obs_traj_dict["rgb"] = torch.from_numpy(_obs_traj_dict["rgb"]).to(
-                    device
-                )  # still uint8
+                # TODO: can't load all rgb into cuda due to lack of memory
+                _obs_traj_dict["rgb"] = torch.from_numpy(_obs_traj_dict["rgb"])
+                # still uint8
             _obs_traj_dict["state"] = torch.from_numpy(_obs_traj_dict["state"]).to(
                 device
             )
@@ -234,6 +235,10 @@ class SmallDemoDataset_DiffusionPolicy(Dataset):  # Load everything into memory
             obs_seq["state"].shape[0] == self.obs_horizon
             and act_seq.shape[0] == self.pred_horizon
         )
+
+        if self.include_rgb:
+            obs_seq["rgb"] = obs_seq["rgb"].to(self.device)
+
         return {
             "observations": obs_seq,
             "actions": act_seq,

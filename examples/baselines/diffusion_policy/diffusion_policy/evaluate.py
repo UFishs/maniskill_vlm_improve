@@ -4,16 +4,24 @@ import torch
 from tqdm import tqdm
 from mani_skill.utils import common
 
-def evaluate(n: int, agent, eval_envs, device, sim_backend: str, progress_bar: bool = True):
+def evaluate(n: int, agent, eval_envs, device, sim_backend: str, progress_bar: bool = True, seed=None):
     agent.eval()
     if progress_bar:
         pbar = tqdm(total=n)
     with torch.no_grad():
         eval_metrics = defaultdict(list)
-        obs, info = eval_envs.reset()
+        obs, info = eval_envs.reset(seed=seed)
         eps_count = 0
         while eps_count < n:
             obs = common.to_tensor(obs, device)
+
+            # import ipdb; ipdb.set_trace()
+            # from PIL import Image
+            # Image.fromarray(obs['rgb'][0,-1,...].cpu().numpy()[...,:3]).save("base.png")
+            # Image.fromarray(obs['rgb'][0,-1,...].cpu().numpy()[...,3:]).save("hand.png")
+
+
+
             action_seq = agent.get_action(obs)
             if sim_backend == "physx_cpu":
                 action_seq = action_seq.cpu().numpy()
@@ -34,6 +42,8 @@ def evaluate(n: int, agent, eval_envs, device, sim_backend: str, progress_bar: b
                 eps_count += eval_envs.num_envs
                 if progress_bar:
                     pbar.update(eval_envs.num_envs)
+
+                obs, info = eval_envs.reset(seed=seed+eps_count if seed is not None else None)
     agent.train()
     for k in eval_metrics.keys():
         eval_metrics[k] = np.stack(eval_metrics[k])

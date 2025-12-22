@@ -50,3 +50,5 @@ temp/
 check_gpu.py
 *.png
 scripts.sh
+*.gif
+read_hdf5.py

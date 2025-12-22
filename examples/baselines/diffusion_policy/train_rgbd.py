@@ -405,7 +405,7 @@ if __name__ == "__main__":
         args.exp_name = os.path.basename(__file__)[: -len(".py")]
         run_name = f"{args.env_id}__{args.exp_name}__{args.seed}__{int(time.time())}"
     else:
-        run_name = args.exp_name
+        run_name = args.exp_name + f"__{args.seed}__{int(time.time())}"
 
     if args.demo_path.endswith(".h5"):
         import json
@@ -610,6 +610,7 @@ if __name__ == "__main__":
         last_tick = time.time()
 
     evaluate_and_save_best(args.total_iters)
+    save_ckpt(run_name, str(args.total_iters))
     log_metrics(args.total_iters)
 
     envs.close()

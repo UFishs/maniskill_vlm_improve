@@ -5,6 +5,7 @@ import trimesh
 
 from mani_skill.agents.base_agent import BaseAgent
 from mani_skill.envs.sapien_env import BaseEnv
+from mani_skill.trajectory.utils.actions.conversion import qpos_to_pd_joint_delta_pos
 from mani_skill.utils.structs.pose import to_sapien_pose
 
 
@@ -67,6 +68,16 @@ class BaseMotionPlanningSolver:
         planner.joint_vel_limits = np.asarray(planner.joint_vel_limits) * self.joint_vel_limits
         planner.joint_acc_limits = np.asarray(planner.joint_acc_limits) * self.joint_acc_limits
         return planner
+
+    def qpos_action_to_pd_joint_delta_pos_action(self, action):
+        controller = self.env_agent.controller
+        arm_action = qpos_to_pd_joint_delta_pos(
+            controller.controllers["arm"], action[:-1]
+        )
+        arm_action = np.clip(arm_action, -1, 1)
+        gripper_action = action[-1]
+        return np.hstack([arm_action, gripper_action])
+
 
     def _update_grasp_visual(self, target: sapien.Pose) -> None:
         return None

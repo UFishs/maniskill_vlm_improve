@@ -49,6 +49,10 @@ class TwoFingerGripperMotionPlanningSolver(BaseMotionPlanningSolver):
                 action = np.hstack([qpos, qvel, self.gripper_state])
             else:
                 action = np.hstack([qpos, self.gripper_state])
+            
+            if self.control_mode == "pd_joint_delta_pos":
+                action = self.qpos_action_to_pd_joint_delta_pos_action(action)
+
             obs, reward, terminated, truncated, info = self.env.step(action)
             self.elapsed_steps += 1
             if self.print_env_info:
@@ -65,10 +69,14 @@ class TwoFingerGripperMotionPlanningSolver(BaseMotionPlanningSolver):
         self.gripper_state = gripper_state
         qpos = self.robot.get_qpos()[0, : len(self.planner.joint_vel_limits)].cpu().numpy()
         for i in range(t):
-            if self.control_mode == "pd_joint_pos":
-                action = np.hstack([qpos, self.gripper_state])
-            else:
+            if self.control_mode == "pd_joint_pos_vel":
                 action = np.hstack([qpos, qpos * 0, self.gripper_state])
+            else:
+                action = np.hstack([qpos, self.gripper_state])
+            
+            if self.control_mode == "pd_joint_delta_pos":
+                action = self.qpos_action_to_pd_joint_delta_pos_action(action)
+
             obs, reward, terminated, truncated, info = self.env.step(action)
             self.elapsed_steps += 1
             if self.print_env_info:
@@ -85,10 +93,14 @@ class TwoFingerGripperMotionPlanningSolver(BaseMotionPlanningSolver):
         self.gripper_state = gripper_state
         qpos = self.robot.get_qpos()[0, : len(self.planner.joint_vel_limits)].cpu().numpy()
         for i in range(t):
-            if self.control_mode == "pd_joint_pos":
-                action = np.hstack([qpos, self.gripper_state])
-            else:
+            if self.control_mode == "pd_joint_pos_vel":
                 action = np.hstack([qpos, qpos * 0, self.gripper_state])
+            else:
+                action = np.hstack([qpos, self.gripper_state])
+            
+            if self.control_mode == "pd_joint_delta_pos":
+                action = self.qpos_action_to_pd_joint_delta_pos_action(action)
+                
             obs, reward, terminated, truncated, info = self.env.step(action)
             self.elapsed_steps += 1
             if self.print_env_info:

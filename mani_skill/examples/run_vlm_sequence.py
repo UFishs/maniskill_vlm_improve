@@ -31,6 +31,7 @@ class Args:
     env_id: Annotated[str, tyro.conf.arg(aliases=["-e"])] = "StackThree-v1"
     obs_mode: str = "rgb"
     record_dir: str = "demos"
+    control_mode: str = "pd_joint_delta_pos"
     """directory to record the demonstration data and optionally videos"""
     save_video: bool = False
     """whether to save the videos of the demonstrations after collecting them all"""
@@ -58,7 +59,7 @@ def main(args: Args):
     env = gym.make(
         args.env_id,
         obs_mode=args.obs_mode,
-        control_mode="pd_joint_pos",
+        control_mode=args.control_mode,
         reward_mode="none",
         render_mode="rgb_array",
     )
@@ -128,7 +129,7 @@ def main(args: Args):
         env = gym.make(
             args.env_id,
             obs_mode=args.obs_mode,
-            control_mode="pd_joint_pos",
+            control_mode=args.control_mode,
             reward_mode="none",
             render_mode="rgb_array",
         )
@@ -192,6 +193,7 @@ def request_action(env, obs):
 def solve(env: BaseEnv, obs, debug=False, vis=False):
     assert env.unwrapped.control_mode in [
         "pd_joint_pos",
+        "pd_joint_delta_pos",
         "pd_joint_pos_vel",
     ], env.unwrapped.control_mode
     

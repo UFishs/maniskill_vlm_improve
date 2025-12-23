@@ -24,7 +24,11 @@ class TwoFingerGripperMotionPlanningSolver(BaseMotionPlanningSolver):
         joint_acc_limits=0.9,
     ):
         super().__init__(env, debug, vis, base_pose, print_env_info, joint_vel_limits, joint_acc_limits)
-        self.gripper_state = self.OPEN
+
+        if self.env_agent.controller.controllers['gripper'].qpos[0][0] < 0.02:
+            self.gripper_state = self.CLOSED
+        else:
+            self.gripper_state = self.OPEN
         self.visualize_target_grasp_pose = visualize_target_grasp_pose
         self.grasp_pose_visual = None
         if self.vis and self.visualize_target_grasp_pose:

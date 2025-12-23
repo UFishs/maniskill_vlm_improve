@@ -85,3 +85,27 @@ def finish_one_stage(agent, eval_envs, last_obs, device, sim_backend: str, curre
 
     agent.train()
     return stage_success, obs
+
+def finish_until_end(agent, eval_envs, last_obs, device, sim_backend: str):
+    agent.eval()
+    
+    with torch.no_grad():
+        obs = last_obs
+        while True:
+            obs = common.to_tensor(obs, device)
+
+            action_seq = agent.get_action(obs)
+            if sim_backend == "physx_cpu":
+                action_seq = action_seq.cpu().numpy()
+            for i in range(action_seq.shape[1]):
+                obs, rew, terminated, truncated, info = eval_envs.step(action_seq[:, i])
+                
+                if truncated.any() or terminated.any():
+                    break
+
+            if truncated.any() or terminated.any():
+                break
+            
+
+    agent.train()
+    return info['success'], obs, info

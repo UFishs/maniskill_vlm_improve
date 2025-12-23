@@ -819,5 +819,9 @@ class RecordEpisode(gym.Wrapper):
             self._h5_file.close()
         if self.save_video:
             if self.save_on_reset:
-                self.flush_video()
+                try:
+                    self.flush_video()
+                except Exception as e:
+                    print("len: ", len(self.render_images))
+                    print("Error flushing video:", e)
         return super().close()

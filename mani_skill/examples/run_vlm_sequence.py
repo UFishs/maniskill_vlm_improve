@@ -158,7 +158,10 @@ def main(args: Args):
 
 def request_action(env, obs):
 
-    images = [Image.fromarray(obs['sensor_data']['base_camera']['rgb'][0].cpu().numpy())]
+    if 'sensor_data' in obs:
+        images = [Image.fromarray(obs['sensor_data']['base_camera']['rgb'][0].cpu().numpy())]
+    else:
+        images = [Image.fromarray(obs['rgb'][0][-1][...,:3])]
     prompt_content = env.unwrapped.get_prompt_content()
 
 

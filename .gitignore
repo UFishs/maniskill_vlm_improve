@@ -52,3 +52,6 @@ check_gpu.py
 scripts.sh
 *.gif
 read_hdf5.py
+
+eval/
+/eval

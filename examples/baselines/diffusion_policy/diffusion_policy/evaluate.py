@@ -48,3 +48,40 @@ def evaluate(n: int, agent, eval_envs, device, sim_backend: str, progress_bar: b
     for k in eval_metrics.keys():
         eval_metrics[k] = np.stack(eval_metrics[k])
     return eval_metrics
+
+
+def finish_one_stage(agent, eval_envs, last_obs, device, sim_backend: str, current_stage, cnt_down = 10):
+    agent.eval()
+    
+    with torch.no_grad():
+        obs = last_obs
+        stage_success = False
+        current_cnt = -1
+        while True:
+            obs = common.to_tensor(obs, device)
+
+            action_seq = agent.get_action(obs)
+            if sim_backend == "physx_cpu":
+                action_seq = action_seq.cpu().numpy()
+            for i in range(action_seq.shape[1]):
+                obs, rew, terminated, truncated, info = eval_envs.step(action_seq[:, i])
+                
+                if current_cnt == -1 and info[f'stage_{current_stage}_success']:
+                    current_cnt = cnt_down
+                
+                if current_cnt > 0:
+                    current_cnt -= 1
+                elif current_cnt == 0:
+                    stage_success = info[f'stage_{current_stage}_success']
+                    break
+
+                if truncated.any():
+                    stage_success = info[f'stage_{current_stage}_success']
+                    break
+
+            if truncated.any() or stage_success:
+                break
+            
+
+    agent.train()
+    return stage_success, obs

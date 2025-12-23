@@ -4,7 +4,7 @@ import gymnasium as gym
 import numpy as np
 from collections import defaultdict
 from diffusion_policy.make_env import make_eval_envs
-from diffusion_policy.evaluate import evaluate
+from diffusion_policy.evaluate import evaluate, finish_one_stage
 from mani_skill.utils.wrappers import CPUGymWrapper
 from mani_skill.utils.wrappers.flatten import FlattenRGBDObservationWrapper
 from train_rgbd import Agent
@@ -13,10 +13,19 @@ import torch
 import tyro
 from diffusers.training_utils import EMAModel
 
+primitive_list = ['stage_1', 'stage_2', 'stage_3', 'stage_4']
+primitive_path = {
+    'stage_1': '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/examples/baselines/diffusion_policy/runs/stage_1__1__1766336665/checkpoints/95000.pt',
+    'stage_2': '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/examples/baselines/diffusion_policy/runs/stage_2__1__1766384578/checkpoints/90000.pt',
+    'stage_3': '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/examples/baselines/diffusion_policy/runs/stage_3__1__1766384624/checkpoints/90000.pt',
+    'stage_4': '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/examples/baselines/diffusion_policy/runs/stage_4__1__1766385177/checkpoints/90000.pt',
+}
+
+
+
 
 @dataclass
 class Args:
-    ckpt_path: Optional[str] = None
     seed: int = 1
     """seed of the experiment"""
     video_dir: Optional[str] = None
@@ -28,9 +37,9 @@ class Args:
     max_episode_steps: Optional[int] = None
     """Change the environments' max_episode_steps to this value. Sometimes necessary if the demonstrations being imitated are too short. Typically the default
     max episode steps of environments in ManiSkill are tuned lower so reinforcement learning agents can learn faster."""
-    num_eval_episodes: int = 100
+    num_eval_episodes: int = 2
     """the number of episodes to evaluate the agent on"""
-    num_eval_envs: int = 10
+    num_eval_envs: int = 1
     """the number of parallel environments to evaluate the agent on"""
     sim_backend: str = "physx_cpu"
     """the simulation backend to use for evaluation environments. can be "cpu" or "gpu"""
@@ -60,10 +69,19 @@ def load_ckpt(ckpt_path, agent, ema_agent):
     agent.load_state_dict(ckpt["agent"])
     ema_agent.load_state_dict(ckpt["ema_agent"])
 
+def load_all_primitive(envs, args, device):
+    agents = {}
+    ema_agents = {}
+    for primitive in primitive_list:
+        ckpt_path = primitive_path[primitive]
+        agents[primitive] = Agent(envs, args).to(device)
+        ema_agents[primitive] = Agent(envs, args).to(device)
+        load_ckpt(ckpt_path, agents[primitive], ema_agents[primitive])
+    return agents, ema_agents
 
 if __name__ == "__main__":
     args = tyro.cli(Args)
-
+    assert args.num_eval_envs == 1, "Only support single env for now"
 
 
     env_kwargs = dict(
@@ -88,23 +106,36 @@ if __name__ == "__main__":
     )
 
 
+
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    agent = Agent(envs, args).to(device)
-    ema = EMAModel(parameters=agent.parameters(), power=0.75)
-    ema_agent = Agent(envs, args).to(device)
+    agents, ema_agents = load_all_primitive(envs, args, device)
+    success_cnt = 0
 
-    load_ckpt(args.ckpt_path, agent, ema_agent)
+    for i in range(args.num_eval_episodes):
+        obs, info = envs.reset(seed=args.seed + i if args.seed is not None else None)
+        whole_success = True
+        for stage_i, primitive in enumerate(primitive_list):
+            current_stage = stage_i + 1
+            stage_success, obs = finish_one_stage(
+                agent=ema_agents[primitive],
+                eval_envs=envs,
+                last_obs=obs,
+                device=device,
+                sim_backend=args.sim_backend,
+                current_stage=current_stage
+            )
+            if stage_success:
+                pass
+            else:
+                whole_success = False
+                break
 
+        if whole_success:
+            success_cnt += 1
 
-    eval_metrics = evaluate(
-        args.num_eval_episodes, ema_agent, envs, device, args.sim_backend, seed=args.seed
-    )
+    with open(f"{args.video_dir}/success_rate.txt", "w") as f:
+        f.write(f"Evaluated {args.num_eval_episodes} episodes")
+        print(f"Evaluated {args.num_eval_episodes} episodes")
 
-    with open(f'{args.video_dir}/eval_metrics.txt', 'w') as f:
-
-        print(f"Evaluated {len(eval_metrics['success_at_end'])} episodes")
-        f.write(f"Evaluated {len(eval_metrics['success_at_end'])} episodes\n")
-        for k in eval_metrics.keys():
-            eval_metrics[k] = np.mean(eval_metrics[k])
-            print(f"{k}: {eval_metrics[k]:.4f}")
-            f.write(f"{k}: {eval_metrics[k]:.4f}\n")
+        f.write(f"Success rate: {success_cnt} / {args.num_eval_episodes}")
+        print(f"Success rate: {success_cnt} / {args.num_eval_episodes}")

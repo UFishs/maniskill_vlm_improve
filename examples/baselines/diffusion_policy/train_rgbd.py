@@ -67,6 +67,8 @@ class Args:
     """total timesteps of the experiment"""
     batch_size: int = 256
     """the batch size of sample from the replay memory"""
+    pretrain_path: Optional[str] = None
+    """the path of pre-trained model"""
 
     # Diffusion Policy specific arguments
     lr: float = 1e-4
@@ -397,6 +399,11 @@ def save_ckpt(run_name, tag):
         f"runs/{run_name}/checkpoints/{tag}.pt",
     )
 
+def load_ckpt(ckpt_path, agent, ema_agent):
+    ckpt = torch.load(ckpt_path)
+    agent.load_state_dict(ckpt["agent"])
+    ema_agent.load_state_dict(ckpt["ema_agent"])
+
 
 if __name__ == "__main__":
     args = tyro.cli(Args)
@@ -529,8 +536,15 @@ if __name__ == "__main__":
     # Exponential Moving Average
     # accelerates training and improves stability
     # holds a copy of the model weights
-    ema = EMAModel(parameters=agent.parameters(), power=0.75)
     ema_agent = Agent(envs, args).to(device)
+
+    if args.pretrain_path is not None:
+        print("-"*10)
+        print(f"finetune from {args.pretrain_path}")
+        print("-"*10)
+        load_ckpt(args.pretrain_path, agent, ema_agent)
+
+    ema = EMAModel(parameters=agent.parameters(), power=0.75)
 
     best_eval_metrics = defaultdict(float)
     timings = defaultdict(float)

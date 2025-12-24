@@ -13,7 +13,7 @@ Analysis requirements:
 6. When the primitives are executed, the end effector should be able to complete the task. You should output the correct action primitives until the end of the task. For example, when you move gripper, you should also try to make the gripper higher than all the objects to avoid collision with the objects.
 7. When you calculate some coordinates, you should round the coordinates to 6 decimal places. When you want to release an object on another object, you should move a little higher (+z axis) to avoid collision with the other object.
 8. When you decide the quaternion, you should use the format (qx, qy, qz, qw), and the values should be rounded to 6 decimal places. When you want to grasp an object, you should use the quaternion of the object to have the same orientation as the object. You should only use rotation at the pre-grasp stage, and you should output (-1, -1, -1, -1) as (qx, qy, qz, qw) when you want to move the end effector without rotation.
-9. You should watch carefully to see if the end effector is closing or not. If you want to grasp something, you should output "Open Gripper" if the end effector is closing now.
+9. You should watch carefully to see if the end effector is closing or not. If you want to grasp something, you should output "Open Gripper" if the end effector is closing now. For example, if you want to pick the red cube, but the frame shows that the gripper is closing, then you should output "Open Gripper" at the very first to make sure the gripper is open when you try to reach the red cube.
 
 
 Action Primitives (choose from the list below):

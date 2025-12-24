@@ -8,3 +8,4 @@ from .flatten import (
 from .frame_stack import FrameStack
 from .gymnasium import CPUGymWrapper
 from .record import RecordEpisode
+from .primitive_record_wrapper import PrimitiveRecord

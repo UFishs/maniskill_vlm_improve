@@ -3,7 +3,7 @@ import gymnasium as gym
 import torch
 import mani_skill.envs
 from mani_skill.utils import gym_utils
-from mani_skill.utils.wrappers import CPUGymWrapper, FrameStack, RecordEpisode
+from mani_skill.utils.wrappers import CPUGymWrapper, FrameStack, RecordEpisode, PrimitiveRecord
 from mani_skill.vector.wrappers.gymnasium import ManiSkillVectorEnv
 
 from copy import deepcopy
@@ -373,6 +373,7 @@ def make_system_envs(
                     env = wrapper(env)
                 env = FrameStack(env, num_stack=other_kwargs["obs_horizon"])
                 env = CPUGymWrapper(env, ignore_terminations=True, record_metrics=True)
+                env = PrimitiveRecord(env)
                 if video_dir:
                     env = RecordEpisode(
                         env,
@@ -438,3 +439,20 @@ def make_system_envs(
             )
         env = ManiSkillVectorEnv(env, ignore_terminations=True, record_metrics=True)
     return env
+
+
+def make_record_env(args, env_kwargs, level_name):
+    record_env = gym.make(
+        args.env_id,
+        **env_kwargs,
+    )
+    record_env = RecordEpisode(
+        record_env,
+        output_dir=f"{args.video_dir}/iter_{args.iter_idx}/{level_name}_record",
+        trajectory_name=f"iter_{args.iter_idx}_{level_name}",
+        save_video=False,
+        info_on_video=False,
+        source_type="iteration",
+        source_desc=f"iteration under {level_name}"
+    )
+    return record_env

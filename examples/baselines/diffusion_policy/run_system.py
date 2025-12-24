@@ -3,11 +3,12 @@ from typing import List, Optional
 import gymnasium as gym
 import numpy as np
 from collections import defaultdict
-from diffusion_policy.make_env import make_eval_envs, make_system_envs
+from diffusion_policy.make_env import make_eval_envs, make_record_env, make_system_envs
 from diffusion_policy.evaluate import evaluate, finish_one_stage, finish_until_end
 from mani_skill.examples.run_vlm_sequence import solve
 from mani_skill.utils.wrappers import CPUGymWrapper
 from mani_skill.utils.wrappers.flatten import FlattenRGBDObservationWrapper
+from mani_skill.utils.wrappers.record import RecordEpisode
 from train_rgbd import Agent
 import os
 import torch
@@ -38,8 +39,9 @@ primitive_path = {
 
 @dataclass
 class Args:
+    iter_idx: int = 0
     base_ckpt_path = '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/examples/baselines/diffusion_policy/runs/base_traj__1__1766336638/checkpoints/95000.pt'
-    seed: int = 1
+    seed: Optional[int] = 0
     """seed of the experiment"""
     video_dir: Optional[str] = None
     env_id: str = "StackThree-v1"
@@ -124,7 +126,7 @@ def request_gemini_for_checking_stage(env, obs):
     return stage_id
 
 def checking_stage_by_info(info):
-    
+
     if not info['stage_2_success']:
         if info['stage_1_success']:
             return 1
@@ -164,6 +166,7 @@ if __name__ == "__main__":
         env_kwargs,
         other_kwargs,
         video_dir=args.video_dir if args.video_dir is not None else None,
+        # video_dir=None,
         wrappers=[FlattenRGBDObservationWrapper],
     )
     temp_envs = make_eval_envs(
@@ -186,15 +189,46 @@ if __name__ == "__main__":
     load_ckpt(args.base_ckpt_path, base_agent, base_ema_agent)
 
 
+    base_record_env = make_record_env(args, env_kwargs, 'base')
+    primitive_record_envs = {}
+    for primitive in primitive_list:
+        primitive_record_envs[primitive] = make_record_env(args, env_kwargs, primitive)
+    envs.unwrapped.set_record_env(base_record_env, primitive_record_envs)
+
     i = 0
+    base_new_traj_cnt = 0
+    primitive_new_traj_cnts = {}
+    for primitive in primitive_list:
+        primitive_new_traj_cnts[primitive] = 0
+
+    start_time = time.time()
     while True:
-        if i >= args.num_eval_episodes:
+        # if i >= args.num_eval_episodes:
+        #     break
+        current_time = time.time()
+        print(f'current time: {current_time - start_time}')
+        
+        if i >= 1000:
+            break
+        
+        min_primitive_cnt = min(primitive_new_traj_cnts.values())
+        if base_new_traj_cnt > 100 and min_primitive_cnt > 50:
+            break
+        
+        whole_primitive_cnt = sum(primitive_new_traj_cnts.values())
+        if base_new_traj_cnt + whole_primitive_cnt >= 300:
             break
 
-    # for i in range(args.num_eval_episodes):
-        obs, info = envs.reset(seed=args.seed + i if args.seed is not None else None)
+        print(f"base_new_traj_cnt: {base_new_traj_cnt}, primitive_new_traj_cnts: {primitive_new_traj_cnts}")
 
-        print('run base policy!')
+
+        if args.seed is None:
+            current_seed = None
+        else:
+            current_seed = args.seed + i + args.iter_idx * 10000
+        obs, info = envs.reset(seed=current_seed)
+
+        # print('run base policy!')
         base_success, obs, info = finish_until_end(
             agent = base_ema_agent,
             eval_envs=envs,
@@ -205,28 +239,35 @@ if __name__ == "__main__":
         envs.reset_envs_elapsed_steps()
 
         if base_success:
-            print('base policy success!!')
+            # print('base policy success!!')
             i += 1
             continue
         
-        print('run primitive policy!')
+        # print('run primitive policy!')
         # stage_id = request_gemini_for_checking_stage(envs, obs)
-        print(info)
         stage_id = checking_stage_by_info(info)
-        print(f'gemini response stage_id: {stage_id}')
+        # print(f'gemini response stage_id: {stage_id}')
+        base_record_env.reset(
+            options={
+                'reset_to_env_states': {
+                    'env_states': envs.unwrapped.unwrapped.get_state_dict(),
+                }
+            }
+        )
         
 
         whole_success = True
         for stage_i in range(stage_id, len(primitive_list)):
             primitive = primitive_list[stage_i]
             current_stage = stage_i + 1
-            stage_success, obs = finish_one_stage(
+            stage_success, obs, info = finish_one_stage(
                 agent=ema_agents[primitive],
                 eval_envs=envs,
                 last_obs=obs,
                 device=device,
                 sim_backend=args.sim_backend,
-                current_stage=current_stage
+                current_stage=current_stage,
+                record_env=base_record_env,
             )
             if stage_success:
                 pass
@@ -234,31 +275,68 @@ if __name__ == "__main__":
                 whole_success = False
                 break
 
+        base_record_env.flush_trajectory(save=whole_success)
         if whole_success:
-            print('primitive policy success!!')
-            # TODO: save
+            # print('primitive policy success!!')
+            base_new_traj_cnt += 1
             i += 1
             continue
+            
+
+
         envs.reset_envs_elapsed_steps()
+        base_record_env.reset(
+            options={
+                'reset_to_env_states': {
+                    'env_states': envs.unwrapped.unwrapped.get_state_dict(),
+                }
+            }
+        )
+        for primitive in primitive_list:
+            primitive_record_envs[primitive].reset(
+                options={
+                    'reset_to_env_states': {
+                        'env_states': envs.unwrapped.unwrapped.get_state_dict(),
+                    }
+                }
+            )
 
-        print('run vlm sequence!')
+        # print('run vlm sequence!')
+        envs.unwrapped.enable_record()
+        stage = checking_stage_by_info(info)
+        envs.unwrapped.set_current_stage(stage)
+
         code = solve(envs.unwrapped, obs, debug=False, vis=False)
+        envs.unwrapped.disable_record()
 
-        if code == "success":
-            print('vlm sequence success!!')
-            # TODO: save
+
+
+
+        vlm_success = (code == "success") and (envs.unwrapped.unwrapped._elapsed_steps < 500)
+
+        base_record_env.flush_trajectory(save=vlm_success)
+        for primitive in primitive_list:
+            primitive_record_envs[primitive].flush_trajectory(save=vlm_success)
+
+        if vlm_success:
+            # print('vlm sequence success!!')
+            base_new_traj_cnt += 1
+            for stage_id in range(stage, len(primitive_list)):
+                primitive = primitive_list[stage_id]
+                primitive_new_traj_cnts[primitive] += 1
             i += 1
             continue
         else:
-            print('vlm sequence failed!!')
+            # print('vlm sequence failed!!')
             i += 1
             continue
 
 
-        
-    
 
     envs.close()
+    base_record_env.close()
+    for primitive in primitive_record_envs:
+        primitive_record_envs[primitive].close()
 
     # with open(f"{args.video_dir}/success_rate.txt", "w") as f:
     #     f.write(f"Evaluated {args.num_eval_episodes} episodes")

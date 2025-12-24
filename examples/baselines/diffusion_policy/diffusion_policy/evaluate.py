@@ -50,7 +50,7 @@ def evaluate(n: int, agent, eval_envs, device, sim_backend: str, progress_bar: b
     return eval_metrics
 
 
-def finish_one_stage(agent, eval_envs, last_obs, device, sim_backend: str, current_stage, cnt_down = 10):
+def finish_one_stage(agent, eval_envs, last_obs, device, sim_backend: str, current_stage, record_env=None, cnt_down = 10):
     agent.eval()
     
     with torch.no_grad():
@@ -65,6 +65,8 @@ def finish_one_stage(agent, eval_envs, last_obs, device, sim_backend: str, curre
                 action_seq = action_seq.cpu().numpy()
             for i in range(action_seq.shape[1]):
                 obs, rew, terminated, truncated, info = eval_envs.step(action_seq[:, i])
+                if record_env:
+                    record_env.step(action_seq[:, i])
                 
                 if current_cnt == -1 and info[f'stage_{current_stage}_success']:
                     current_cnt = cnt_down
@@ -84,7 +86,7 @@ def finish_one_stage(agent, eval_envs, last_obs, device, sim_backend: str, curre
             
 
     agent.train()
-    return stage_success, obs
+    return stage_success, obs, info
 
 def finish_until_end(agent, eval_envs, last_obs, device, sim_backend: str):
     agent.eval()
@@ -105,7 +107,6 @@ def finish_until_end(agent, eval_envs, last_obs, device, sim_backend: str):
 
             if truncated.any() or terminated.any():
                 break
-            
 
     agent.train()
     return info['success'], obs, info

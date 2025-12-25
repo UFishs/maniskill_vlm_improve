@@ -399,6 +399,8 @@ def _main(
         new_json_data["episodes"] = []
 
         for episode in episodes:
+            if episode["episode_id"] not in episode_id_to_segment_id:
+                continue
             episode_id = episode["episode_id"]
             traj_id = f"traj_{episode_id}"
             new_traj_id = f"traj_{new_file_episode_id}"
@@ -419,8 +421,11 @@ def _main(
             
             new_file.create_group(new_traj_id)
             for key in ori_h5_file[traj_id]:
-                recursive_copy(new_file[new_traj_id], ori_h5_file[traj_id], key, start_idx, end_idx)
-            
+                if key == 'obs':
+                    recursive_copy(new_file[new_traj_id], ori_h5_file[traj_id], key, start_idx, end_idx+1)
+                else:
+                    recursive_copy(new_file[new_traj_id], ori_h5_file[traj_id], key, start_idx, end_idx)
+
             temp_episode = episode.copy()
             temp_episode["episode_id"] = new_file_episode_id
             new_json_data["episodes"].append(temp_episode)
@@ -428,7 +433,7 @@ def _main(
             new_file_episode_id += 1
         
         new_file.close()
-        io_utils.dump_json(new_json_path, new_json_data)
+        io_utils.dump_json(new_json_path, new_json_data, indent=4)
 
 
 

@@ -161,7 +161,7 @@ class StackThreeEnv(BaseEnv):
 
         # 3. grasp cubeC
         is_cubeC_grasped = self.agent.is_grasping(self.cubeC)
-        is_cubeC_lifted = pos_C[..., 2] > self.cube_half_size[..., 2] * 6
+        is_cubeC_lifted = pos_C[..., 2] > self.cube_half_size[..., 2] * 4
         stage_3_success = is_cubeC_grasped * is_cubeC_lifted
 
         # 4. stack cubeC on cubeA

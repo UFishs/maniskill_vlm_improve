@@ -266,6 +266,18 @@ def replay_cpu_sim(
         for _ in range(args.max_retry + 1):
             # Each trial for each trajectory to replay, we reset the environment
             # and optionally set the first environment state
+            
+            def recusive_change_list_to_array(x):
+                if isinstance(x, list):
+                    return np.array(x)
+                elif isinstance(x, dict):
+                    for k in x.keys():
+                        x[k] = recusive_change_list_to_array(x[k])
+                    return x
+                else:
+                    return x
+
+            recusive_change_list_to_array(reset_kwargs)
             env.reset(**reset_kwargs)
             if ori_env is not None:
                 ori_env.reset(**reset_kwargs)

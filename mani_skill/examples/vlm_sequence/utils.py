@@ -119,6 +119,7 @@ class PrimitiveExecutor:
 
                 res = self.planner.move_to_pose_with_screw(target_pose)
 
+
             elif primitive.type == "open":
                 res = self.planner.open_gripper(t=10)
             
@@ -127,6 +128,11 @@ class PrimitiveExecutor:
             
             else:
                 res = None
+            
+            if res is not None and res != -1:
+                now_obs, reward, terminated, truncated, info = res
+                if truncated:
+                    return None
         
         return res
     

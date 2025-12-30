@@ -63,6 +63,10 @@ class TwoFingerGripperMotionPlanningSolver(BaseMotionPlanningSolver):
                 print(
                     f"[{self.elapsed_steps:3}] Env Output: reward={reward} info={info}"
                 )
+
+            if truncated:
+                return None
+
             if self.vis:
                 self.base_env.render_human()
         return obs, reward, terminated, truncated, info

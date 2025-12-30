@@ -49,6 +49,7 @@ class Args:
     )
     must_success: bool = False
     num_rollout: int = 10
+    traj_name: str = "trajectory"
 
 
 def parse_args() -> Args:
@@ -66,7 +67,7 @@ def main(args: Args):
     env = RecordEpisode(
         env,
         output_dir=output_dir,
-        trajectory_name="trajectory",
+        trajectory_name=args.traj_name,
         save_video=False,
         info_on_video=False,
         source_type="vlm_sequence",
@@ -160,8 +161,12 @@ def request_action(env, obs):
 
     if 'sensor_data' in obs:
         images = [Image.fromarray(obs['sensor_data']['base_camera']['rgb'][0].cpu().numpy())]
-    else:
+    elif 'rgb' in obs:
         images = [Image.fromarray(obs['rgb'][0][-1][...,:3])]
+    else:
+        image = obs['base_camera'][0][-1]
+        image = np.array(image * 255, dtype=np.uint8).transpose(1, 2, 0)
+        images = [Image.fromarray(image)]
     prompt_content = env.unwrapped.get_prompt_content()
 
 

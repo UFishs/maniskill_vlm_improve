@@ -45,15 +45,32 @@ class FrameStack(gym.ObservationWrapper):
     def base_env(self) -> BaseEnv:
         return self.env.unwrapped
 
-    def observation(self, observation):
-        assert len(self.frames) == self.num_stack, (len(self.frames), self.num_stack)
-        if self.use_dict:
+    def _stack_frames(self, frames):
+        """
+        frames: list of observations (len = num_stack)
+        observation can be tensor or nested dict
+        """
+        sample = frames[0]
+
+        if isinstance(sample, dict):
             return {
-                k: torch.stack([x[k] for x in self.frames], dim=0).transpose(0, 1)
-                for k in self.observation_space.keys()
+                k: self._stack_frames([f[k] for f in frames])
+                for k in sample.keys()
             }
         else:
-            return torch.stack(list(self.frames)).transpose(0, 1)
+            # tensor
+            return torch.stack(frames, dim=0).transpose(0, 1)
+
+    def observation(self, observation):
+        assert len(self.frames) == self.num_stack, (len(self.frames), self.num_stack)
+        # if self.use_dict:
+        #     return {
+        #         k: torch.stack([x[k] for x in self.frames], dim=0).transpose(0, 1)
+        #         for k in self.observation_space.keys()
+        #     }
+        # else:
+        #     return torch.stack(list(self.frames)).transpose(0, 1)
+        return self._stack_frames(list(self.frames))
 
         # LazyFrames equivalent code. It is unclear yet if this is faster or saves much memory. LazyFrames leverages __slots__ to save memory
         # and have faster attribute access.

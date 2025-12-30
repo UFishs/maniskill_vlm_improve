@@ -65,7 +65,7 @@ class Args:
     """number of trajectories to load from the demo dataset"""
     total_iters: int = 1_000_000
     """total timesteps of the experiment"""
-    batch_size: int = 256
+    batch_size: int = 128
     """the batch size of sample from the replay memory"""
     pretrain_path: Optional[str] = None
     """the path of pre-trained model"""

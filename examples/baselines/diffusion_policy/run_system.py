@@ -200,14 +200,26 @@ if __name__ == "__main__":
     primitive_new_traj_cnts = {}
     for primitive in primitive_list:
         primitive_new_traj_cnts[primitive] = 0
+    base_already_success_cnt = 0
+    primitive_direct_success_cnt = 0
+    vlm_direct_success_cnt = 0
+    vlm_final_fail_cnt = 0
 
     start_time = time.time()
     while True:
         # if i >= args.num_eval_episodes:
         #     break
         current_time = time.time()
+        print('-'*20)
         print(f'current time: {current_time - start_time}')
+        print(f'total_attempt: {i}')
+        print(f'base_already_success_cnt: {base_already_success_cnt}')
+        print(f'primitive_direct_success_cnt: {primitive_direct_success_cnt}')
+        print(f'vlm_direct_success_cnt: {vlm_direct_success_cnt}')
+        print(f'vlm_final_fail_cnt: {vlm_final_fail_cnt}')
+        print(f"base_new_traj_cnt: {base_new_traj_cnt}, primitive_new_traj_cnts: {primitive_new_traj_cnts}")
         
+
         if i >= 1000:
             break
         
@@ -216,10 +228,9 @@ if __name__ == "__main__":
             break
         
         whole_primitive_cnt = sum(primitive_new_traj_cnts.values())
-        if base_new_traj_cnt + whole_primitive_cnt >= 300:
+        if base_new_traj_cnt + whole_primitive_cnt >= 500:
             break
 
-        print(f"base_new_traj_cnt: {base_new_traj_cnt}, primitive_new_traj_cnts: {primitive_new_traj_cnts}")
 
 
         if args.seed is None:
@@ -240,6 +251,7 @@ if __name__ == "__main__":
 
         if base_success:
             # print('base policy success!!')
+            base_already_success_cnt += 1
             i += 1
             continue
         
@@ -278,6 +290,7 @@ if __name__ == "__main__":
         base_record_env.flush_trajectory(save=whole_success)
         if whole_success:
             # print('primitive policy success!!')
+            primitive_direct_success_cnt += 1
             base_new_traj_cnt += 1
             i += 1
             continue
@@ -320,6 +333,7 @@ if __name__ == "__main__":
 
         if vlm_success:
             # print('vlm sequence success!!')
+            vlm_direct_success_cnt += 1
             base_new_traj_cnt += 1
             for stage_id in range(stage, len(primitive_list)):
                 primitive = primitive_list[stage_id]
@@ -328,6 +342,7 @@ if __name__ == "__main__":
             continue
         else:
             # print('vlm sequence failed!!')
+            vlm_final_fail_cnt += 1
             i += 1
             continue
 

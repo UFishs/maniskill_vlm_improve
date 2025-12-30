@@ -99,37 +99,42 @@ def main():
             input_dir = Path(input_dir)
             traj_paths.extend(sorted(input_dir.rglob(args.pattern)))
     
+
+    
+    args.output_path = '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_merge/iter_1_stage_4_merge.h5'
+
     # traj_paths = [
     #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/demos/StackThree-v1/motionplanning/base_traj_200.rgb.pd_joint_delta_pos.physx_cpu.h5',
-    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/eval/system_collect/iter_1/base_record/iter_1_base.h5'
+    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_1000/base_record/iter_1_base.h5',
+    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_2000/base_record/iter_1_base.h5',
     # ]
     # traj_paths = [
     #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/demos/StackThree-v1/motionplanning/split_pd_joint_delta_pos/stage_1.h5',
-    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/eval/system_collect/iter_1/stage_1_record/iter_1_stage_1.h5',
+    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_1000/stage_1_record/iter_1_stage_1.h5',
+    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_2000/stage_1_record/iter_1_stage_1.h5',
     # ]
     # traj_paths = [
     #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/demos/StackThree-v1/motionplanning/split_pd_joint_delta_pos/stage_2.h5',
-    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/eval/system_collect/iter_1/stage_2_record/iter_1_stage_2.h5',
+    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_1000/stage_2_record/iter_1_stage_2.h5',
+    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_2000/stage_2_record/iter_1_stage_2.h5',
     # ]
     # traj_paths = [
     #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/demos/StackThree-v1/motionplanning/split_pd_joint_delta_pos/stage_3.h5',
-    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/eval/system_collect/iter_1/stage_3_record/iter_1_stage_3.h5',
+    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_1000/stage_3_record/iter_1_stage_3.h5',
+    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_2000/stage_3_record/iter_1_stage_3.h5',
     # ]
     traj_paths = [
-        '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/demos/StackThree-v1/motionplanning/split_pd_joint_delta_pos/stage_4.h5',
-        '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/eval/system_collect/iter_1/stage_4_record/iter_1_stage_4.h5',
+        '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/demos/StackThree-v1/motionplanning/split_pd_joint_delta_pos/stage_1.h5',
+        '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_1000/stage_4_record/iter_1_stage_4.h5',
+        '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_2000/stage_4_record/iter_1_stage_4.h5',
     ]
 
 
     num_demos = [
-        100,
+        None,
+        None,
         None
     ]
-    # args.output_path = '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/eval/system_collect/iter_1/base_record/iter_1_base_merge.h5'
-    # args.output_path = '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/eval/system_collect/iter_1/stage_1_record/iter_1_stage_1_merge.h5'
-    # args.output_path = '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/eval/system_collect/iter_1/stage_2_record/iter_1_stage_2_merge.h5'
-    # args.output_path = '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/eval/system_collect/iter_1/stage_3_record/iter_1_stage_3_merge.h5'
-    args.output_path = '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/eval/system_collect/iter_1/stage_4_record/iter_1_stage_4_merge.h5'
 
     output_dir = Path(args.output_path).parent
     output_dir.mkdir(exist_ok=True, parents=True)

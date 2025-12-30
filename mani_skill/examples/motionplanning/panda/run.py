@@ -40,6 +40,8 @@ def parse_args(args=None):
     parser.add_argument("--shader", default="default", type=str, help="Change shader used for rendering. Default is 'default' which is very fast. Can also be 'rt' for ray tracing and generating photo-realistic renders. Can also be 'rt-fast' for a faster but lower quality ray-traced renderer")
     parser.add_argument("--record-dir", type=str, default="demos", help="where to save the recorded trajectories")
     parser.add_argument("--num-procs", type=int, default=1, help="Number of processes to use to help parallelize the trajectory replay process. This uses CPU multiprocessing and only works with the CPU simulation backend at the moment.")
+    parser.add_argument("--sim_freq", type=int, default=100, help="Simulation frequency in Hz.")
+    parser.add_argument("--control_freq", type=int, default=20, help="Control frequency in Hz.")
     return parser.parse_args()
 
 def _main(args, proc_id: int = 0, start_seed: int = 0) -> str:
@@ -52,6 +54,7 @@ def _main(args, proc_id: int = 0, start_seed: int = 0) -> str:
         sensor_configs=dict(shader_pack=args.shader),
         human_render_camera_configs=dict(shader_pack=args.shader),
         viewer_camera_configs=dict(shader_pack=args.shader),
+        sim_config=dict(sim_freq=args.sim_freq, control_freq=args.control_freq),
         sim_backend=args.sim_backend
     )
     if env_id not in MP_SOLUTIONS:

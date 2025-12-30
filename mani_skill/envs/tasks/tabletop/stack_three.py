@@ -253,9 +253,15 @@ class StackThreeEnv(BaseEnv):
 
     def get_prompt_content(self):
         
+        if self.agent.controller.controllers['gripper'].qpos[0][0] < 0.02:
+            gripper_state = 'closed'
+        else:
+            gripper_state = 'open'
+
         return {
             'task_desc': 'Stack the red cube on the green cube, and then stack the blue cube on the red cube to form a tower.',
             'ground_truth': {
+                'gripper_state': gripper_state,
                 'red_cube_pos': self.cubeA.pose.p.cpu().numpy().tolist(),
                 'red_cube_quat': self.cubeA.pose.q.cpu().numpy().tolist(),
                 'green_cube_pos': self.cubeB.pose.p.cpu().numpy().tolist(),

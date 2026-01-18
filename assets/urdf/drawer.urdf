@@ -1,0 +1,120 @@
+<?xml version="1.0"?>
+<robot name="drawer">
+  <link name="base_link" />
+  <link name="drawer_frame">
+    <inertial>
+      <mass value="5.0" />
+      <origin xyz="0 0 0" />
+      <inertia  ixx="0.000128" ixy="0.0"  ixz="0.0"  iyy="0.000128"  iyz="0.0" izz="0.000128" />
+    </inertial>
+    <visual>
+      <geometry>
+        <mesh filename="../meshes/drawer/visual/drawer_frame.obj"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.25 -0.25 0.925"/>
+      <geometry>
+        <box size="0.05 0.05 0.25" />
+      </geometry>
+    </collision>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.25 0.25 0.925"/>
+      <geometry>
+        <box size="0.05 0.05 0.25" />
+      </geometry>
+    </collision>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.6 -0.25 0.925"/>
+      <geometry>
+        <box size="0.05 0.05 0.25" />
+      </geometry>
+    </collision>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.6 0.25 0.925"/>
+      <geometry>
+        <box size="0.05 0.05 0.25" />
+      </geometry>
+    </collision>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.425 0 1.03"/>
+      <geometry>
+        <box size="0.4 0.55 0.06" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="base_link_to_drawer_frame" type="fixed">
+    <parent link="base_link"/>
+    <child link="drawer_frame"/>
+  </joint>
+  <link name="drawer">
+    <inertial>
+      <mass value="0.75" />
+      <origin xyz="0 0 0" />
+      <inertia  ixx="0.000128" ixy="0.0"  ixz="0.0"  iyy="0.000128"  iyz="0.0" izz="0.000128" />
+    </inertial>
+    <visual>
+      <geometry>
+        <mesh filename="../meshes/drawer/visual/drawer.obj"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.2325 0 0.9"/>
+      <geometry>
+        <box size="0.015 0.43 0.19" />
+      </geometry>
+    </collision>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.4 -0.21 0.88"/>
+      <geometry>
+        <box size="0.32 0.01 0.15" />
+      </geometry>
+    </collision>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.4 0.21 0.88"/>
+      <geometry>
+        <box size="0.32 0.01 0.15" />
+      </geometry>
+    </collision>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.565 0 0.88"/>
+      <geometry>
+        <box size="0.01 0.43 0.15" />
+      </geometry>
+    </collision>
+    <collision>
+      <origin rpy="0 0 0" xyz="-0.4 0 0.81"/>
+      <geometry>
+        <box size="0.32 0.43 0.01" />
+      </geometry>
+    </collision>
+  </link>
+  <joint name="drawer_frame_to_drawer" type="prismatic">
+    <parent link="drawer_frame"/>
+    <child link="drawer"/>
+    <limit effort="330.0" lower="0.0" upper="0.35" velocity="2.09439510239"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <dynamics damping="0.0" friction="0.01"/>
+  </joint>
+  <link name="handle">
+    <inertial>
+      <mass value="0.1" />
+      <origin xyz="0 0 0" />
+      <inertia  ixx="0.000128" ixy="0.0"  ixz="0.0"  iyy="0.000128"  iyz="0.0" izz="0.000128" />
+    </inertial>
+    <visual>
+      <geometry>
+        <mesh filename="../meshes/drawer/visual/drawer_handle.obj"/>
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <mesh filename="../meshes/drawer/visual/drawer_handle.obj"/>
+      </geometry>
+    </collision>
+  </link>
+  <joint name="drawer_to_handle" type="fixed">
+    <parent link="drawer"/>
+    <child link="handle"/>
+  </joint>
+</robot>

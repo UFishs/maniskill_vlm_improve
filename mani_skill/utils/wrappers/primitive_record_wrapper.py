@@ -11,6 +11,9 @@ class PrimitiveRecord(gym.Wrapper):
         self.primitive_list = ['stage_1', 'stage_2', 'stage_3', 'stage_4']
         self.current_stage = 0
         self.record = False
+        self.last_stage = None
+        self.last_cnt = -1
+        self.required_cnt = 10
     
     def set_record_env(self, base_record_env, primitive_record_envs):
         self.base_record_env = base_record_env
@@ -35,8 +38,20 @@ class PrimitiveRecord(gym.Wrapper):
             self.base_record_env.step(action)
             if self.current_stage < len(self.primitive_list):
                 self.primitive_record_envs[self.primitive_list[self.current_stage]].step(action)
+            
+            if self.last_stage is not None and self.last_cnt != -1:
+                self.primitive_record_envs[self.last_stage].step(action)
+                self.last_cnt -= 1
+            
+            if self.last_stage is not None and self.last_cnt == 0:
+                self.last_stage = None
+                self.last_cnt = -1
 
             if self.current_stage < len(self.primitive_list) and info[f'{self.primitive_list[self.current_stage]}_success']:
+
+                self.last_stage = self.primitive_list[self.current_stage]
+                self.last_cnt = self.required_cnt
+
                 self.current_stage += 1
                 if self.current_stage < len(self.primitive_list):
                     # print(f"change from {self.primitive_list[self.current_stage - 1]} to {self.primitive_list[self.current_stage]}")

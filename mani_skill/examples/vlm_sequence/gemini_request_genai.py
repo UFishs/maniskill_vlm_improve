@@ -6,12 +6,20 @@ load_dotenv()
 
 from google import genai
 from google.genai import types
+from google.genai.types import HttpOptions
 import json
 import time
 
-api_key = os.getenv('GOOGLE_GEMINI_KEY')
+# api_key = os.getenv('GOOGLE_GEMINI_KEY')
+GOOGLE_APPLICATION_CREDENTIALS = os.getenv('GOOGLE_APPLICATION_CREDENTIALS')
+os.environ['GOOGLE_APPLICATION_CREDENTIALS'] = GOOGLE_APPLICATION_CREDENTIALS
 model_name = 'gemini-2.5-pro'
-client = genai.Client(api_key=api_key)
+client = genai.Client(
+    http_options=HttpOptions(api_version="v1"),
+    vertexai=True,
+    project="nova-gemini-250407",
+    location="global",
+)
 
 
 def pil_to_bytes(image):

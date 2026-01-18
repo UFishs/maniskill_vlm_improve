@@ -14,14 +14,26 @@ import tyro
 from diffusers.training_utils import EMAModel
 
 primitive_list = ['stage_1', 'stage_2', 'stage_3', 'stage_4']
+# primitive_path = {
+#     'stage_1': '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/examples/baselines/diffusion_policy/runs/stage_1__1__1766336665/checkpoints/95000.pt',
+#     'stage_2': '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/examples/baselines/diffusion_policy/runs/stage_2__1__1766384578/checkpoints/90000.pt',
+#     'stage_3': '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/examples/baselines/diffusion_policy/runs/stage_3__1__1766384624/checkpoints/90000.pt',
+#     'stage_4': '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/examples/baselines/diffusion_policy/runs/stage_4__1__1766385177/checkpoints/90000.pt',
+# }
+# primitive_path = {
+#     'stage_1': '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/examples/baselines/diffusion_policy/runs/iter_1_stage_1__1__1766577908/checkpoints/100000.pt',
+#     'stage_2': '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/examples/baselines/diffusion_policy/runs/iter_1_stage_2__1__1766578535/checkpoints/100000.pt',
+#     'stage_3': '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/examples/baselines/diffusion_policy/runs/iter_1_stage_3__1__1766633074/checkpoints/100000.pt',
+#     'stage_4': '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/examples/baselines/diffusion_policy/runs/iter_1_stage_4__1__1766633085/checkpoints/100000.pt',
+# }
+
+
 primitive_path = {
-    'stage_1': '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/examples/baselines/diffusion_policy/runs/stage_1__1__1766336665/checkpoints/95000.pt',
-    'stage_2': '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/examples/baselines/diffusion_policy/runs/stage_2__1__1766384578/checkpoints/90000.pt',
-    'stage_3': '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/examples/baselines/diffusion_policy/runs/stage_3__1__1766384624/checkpoints/90000.pt',
-    'stage_4': '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/examples/baselines/diffusion_policy/runs/stage_4__1__1766385177/checkpoints/90000.pt',
+    'stage_1': '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/examples/baselines/diffusion_policy/runs/500_stage_1__1__1766760820/checkpoints/100000.pt',
+    'stage_2': '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/examples/baselines/diffusion_policy/runs/500_stage_2__1__1766778990/checkpoints/100000.pt',
+    'stage_3': '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/examples/baselines/diffusion_policy/runs/500_stage_3__1__1766789819/checkpoints/100000.pt',
+    'stage_4': '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/examples/baselines/diffusion_policy/runs/500_stage_4__1__1766789853/checkpoints/100000.pt',
 }
-
-
 
 
 @dataclass
@@ -116,7 +128,7 @@ if __name__ == "__main__":
         whole_success = True
         for stage_i, primitive in enumerate(primitive_list):
             current_stage = stage_i + 1
-            stage_success, obs = finish_one_stage(
+            stage_success, obs, info = finish_one_stage(
                 agent=ema_agents[primitive],
                 eval_envs=envs,
                 last_obs=obs,

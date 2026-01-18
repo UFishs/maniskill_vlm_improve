@@ -18,3 +18,4 @@ from .push_t import PushTEnv
 from .pull_cube_tool import PullCubeToolEnv
 from .stack_pyramid import StackPyramidEnv
 from .stack_three import StackThreeEnv
+from .mug_cleanup import MugCleanupEnv

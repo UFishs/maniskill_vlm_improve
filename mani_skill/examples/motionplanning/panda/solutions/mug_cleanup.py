@@ -137,6 +137,9 @@ def solve(env: StackThreeEnv, seed=None, debug=False, vis=False):
     res = planner.move_to_pose_with_screw(new_pose)
 
 
+    res = planner.move_to_pose_with_screw(grasp_pose * sapien.Pose([0, 0, 0.06]))
+
+
 
 
 

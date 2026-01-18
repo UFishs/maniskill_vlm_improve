@@ -101,40 +101,66 @@ def main():
     
 
     
-    args.output_path = '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_merge/iter_1_stage_4_merge.h5'
+    level_name = 'base'
+    # level_name = 'stage_1'
+    # level_name = 'stage_2'
+    # level_name = 'stage_3'
+    # level_name = 'stage_4'
+    merged_iter_idx = 2
+    seeds = [1000, 2000, 3000, 4000, 5000, 6000]
 
+    args.output_path = f'/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_{merged_iter_idx+1}_merge/iter_{merged_iter_idx+1}_{level_name}_merge.h5'
+    base_traj_path = f'/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_{merged_iter_idx}_merge/iter_{merged_iter_idx}_{level_name}_merge.h5'
+
+    traj_paths = [base_traj_path]
+    for seed in seeds:
+        new_path = f'/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_{merged_iter_idx+1}_seed_{seed}/{level_name}_record/iter_{merged_iter_idx+1}_{level_name}.h5'
+        traj_paths.append(new_path)
+
+    print(traj_paths)
+
+    num_demos = None
+
+
+
+    # args.output_path = '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_merge/iter_1_base_merge_vlm.h5'
     # traj_paths = [
     #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/demos/StackThree-v1/motionplanning/base_traj_200.rgb.pd_joint_delta_pos.physx_cpu.h5',
-    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_1000/base_record/iter_1_base.h5',
-    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_2000/base_record/iter_1_base.h5',
+    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_1000/base_record/vlm_succ_base_record.h5',
+    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_2000/base_record/vlm_succ_base_record.h5',
     # ]
+    # num_demos = None
+
+    # args.output_path = '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_merge/iter_1_base_merge_primitive.h5'
     # traj_paths = [
-    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/demos/StackThree-v1/motionplanning/split_pd_joint_delta_pos/stage_1.h5',
-    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_1000/stage_1_record/iter_1_stage_1.h5',
-    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_2000/stage_1_record/iter_1_stage_1.h5',
+    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/demos/StackThree-v1/motionplanning/base_traj_200.rgb.pd_joint_delta_pos.physx_cpu.h5',
+    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_1000/base_record/primitive_succ_base_record.h5',
+    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_2000/base_record/primitive_succ_base_record.h5',
     # ]
-    # traj_paths = [
-    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/demos/StackThree-v1/motionplanning/split_pd_joint_delta_pos/stage_2.h5',
-    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_1000/stage_2_record/iter_1_stage_2.h5',
-    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_2000/stage_2_record/iter_1_stage_2.h5',
-    # ]
-    # traj_paths = [
-    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/demos/StackThree-v1/motionplanning/split_pd_joint_delta_pos/stage_3.h5',
-    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_1000/stage_3_record/iter_1_stage_3.h5',
-    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_2000/stage_3_record/iter_1_stage_3.h5',
-    # ]
+    # num_demos = None
+
+    args.output_path = '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_merge/iter_1_base_merge_primitive_364.h5'
     traj_paths = [
-        '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/demos/StackThree-v1/motionplanning/split_pd_joint_delta_pos/stage_1.h5',
-        '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_1000/stage_4_record/iter_1_stage_4.h5',
-        '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_2000/stage_4_record/iter_1_stage_4.h5',
+        '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/demos/StackThree-v1/motionplanning/base_traj_200.rgb.pd_joint_delta_pos.physx_cpu.h5',
+        '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_1000/base_record/primitive_succ_base_record.h5',
+        '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_2000/base_record/primitive_succ_base_record.h5',
+        '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_3000/base_record/primitive_succ_base_record.h5',
+        '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_4000/base_record/primitive_succ_base_record.h5',
+        '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_5000/base_record/primitive_succ_base_record.h5',
+        '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/system_collect/iter_1_seed_6000/base_record/primitive_succ_base_record.h5'
     ]
-
-
     num_demos = [
-        None,
-        None,
-        None
+        200,
+        36,
+        29,
+        32,
+        20,
+        32,
+        15
     ]
+
+
+
 
     output_dir = Path(args.output_path).parent
     output_dir.mkdir(exist_ok=True, parents=True)

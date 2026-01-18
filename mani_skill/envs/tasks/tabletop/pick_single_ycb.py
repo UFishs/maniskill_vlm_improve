@@ -101,7 +101,7 @@ class PickSingleYCBEnv(BaseEnv):
     @property
     def _default_sensor_configs(self):
         pose = sapien_utils.look_at(eye=[0.3, 0, 0.6], target=[-0.1, 0, 0.1])
-        return [CameraConfig("base_camera", pose, 128, 128, np.pi / 2, 0.01, 100)]
+        return [CameraConfig("base_camera", pose, 256, 256, np.pi / 2, 0.01, 100)]
 
     @property
     def _default_human_render_camera_configs(self):
@@ -136,6 +136,10 @@ class PickSingleYCBEnv(BaseEnv):
 
         self._objs: List[Actor] = []
         self.obj_heights = []
+        # import ipdb; ipdb.set_trace()
+        # model_ids = ['065-j_cups']
+        # model_ids = ['025_mug']
+        
         for i, model_id in enumerate(model_ids):
             # TODO: before official release we will finalize a metadata dataclass that these build functions should return.
             builder = actors.get_actor_builder(

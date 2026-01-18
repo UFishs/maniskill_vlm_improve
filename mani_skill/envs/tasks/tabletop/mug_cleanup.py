@@ -94,6 +94,19 @@ class MugCleanupEnv(BaseEnv):
         handle_links: List[List[Link]] = []
         handle_links_meshes: List[List[trimesh.Trimesh]] = []
 
+        # loader = self.scene.create_urdf_loader()
+        # loader.scale = 0.5
+        # urdf_path = '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/assets/urdf/drawer.urdf'
+        # # the .parse function can also parse multiple articulations
+        # # actors and cameras but we only use the articulations
+        # articulation_builders = loader.parse(str(urdf_path))["articulation_builders"]
+        # builder = articulation_builders[0]
+        # # choose a reasonable initial pose that doesn't intersect other objects
+        # # this matters a lot for articulations in GPU sim or else simulation bugs can occur
+        # builder.initial_pose = sapien.Pose(p=[0.2, 0.2, 0.0])
+        # self.drawer = builder.build(name="my_articulation")
+
+
         mjcf_path = '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/assets/drawer_long.xml'
         loader = self.scene.create_mjcf_loader()
         builders = loader.parse(str(mjcf_path))

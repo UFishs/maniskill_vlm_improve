@@ -134,6 +134,12 @@ class OpenCabinetDrawerEnv(BaseEnv):
         self._cabinets: List[Articulation] = []
         handle_links: List[List[Link]] = []
         handle_links_meshes: List[List[trimesh.Trimesh]] = []
+
+        # model_ids = ['1004']
+        # model_ids = ['1024']
+        # model_ids = ['1052']
+
+
         for i, model_id in enumerate(model_ids):
             # partnet-mobility is a dataset source and the ids are the ones we sampled
             # we provide tools to easily create the articulation builder like so by querying

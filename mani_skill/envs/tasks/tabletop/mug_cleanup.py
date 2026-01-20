@@ -54,8 +54,6 @@ class MugCleanupEnv(BaseEnv):
 
     @property
     def _default_human_render_camera_configs(self):
-        # pose = sapien_utils.look_at([0.6, 0.7, 0.6], [0.0, 0.0, 0.35])
-        # return CameraConfig("render_camera", pose, 512, 512, 1, 0.01, 100)
         pose = sapien_utils.look_at(eye=[0.5, 0, 0.6], target=[-0.1, 0, -0.1])
         return [CameraConfig("render_camera", pose, 256, 256, np.pi / 3, 0.01, 100)]
 
@@ -94,28 +92,22 @@ class MugCleanupEnv(BaseEnv):
         handle_links: List[List[Link]] = []
         handle_links_meshes: List[List[trimesh.Trimesh]] = []
 
-        # loader = self.scene.create_urdf_loader()
-        # loader.scale = 0.5
-        # urdf_path = '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/assets/urdf/drawer.urdf'
-        # # the .parse function can also parse multiple articulations
-        # # actors and cameras but we only use the articulations
-        # articulation_builders = loader.parse(str(urdf_path))["articulation_builders"]
-        # builder = articulation_builders[0]
-        # # choose a reasonable initial pose that doesn't intersect other objects
-        # # this matters a lot for articulations in GPU sim or else simulation bugs can occur
-        # builder.initial_pose = sapien.Pose(p=[0.2, 0.2, 0.0])
-        # self.drawer = builder.build(name="my_articulation")
-
-
-        mjcf_path = '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/assets/drawer_long.xml'
+        mjcf_path = 'assets/drawer_long.xml'
         loader = self.scene.create_mjcf_loader()
         builders = loader.parse(str(mjcf_path))
         articulation_builders = builders["articulation_builders"]
         actor_builders = builders["actor_builders"]
         builder = articulation_builders[0]
         builder.initial_pose = sapien.Pose(p=[0.2, 0.2, 0.0])
+        builder.fix_root_link = True  # fix the base of the drawer
         drawer = builder.build(name="drawer_articulation")
 
+        # import ipdb; ipdb.set_trace()
+
+        for link in drawer.links:
+            # Clear collision filtering bits (group 2) so it can collide with robot
+            for bit in range(32):
+                link.set_collision_group_bit(2, bit, 0)
 
         self._drawers.append(drawer)
         handle_links.append([])
@@ -135,6 +127,12 @@ class MugCleanupEnv(BaseEnv):
                 )
         
         self.drawer = Articulation.merge(self._drawers, name="drawer")
+
+        # print("drawer wrapper type:", type(drawer))
+        # print("drawer wrapper dir has:", [k for k in ["entity","_entity","raw","_raw","articulation","_articulation"] if hasattr(drawer, k)])
+        # print("merged drawer type:", type(self.drawer))
+        # print("merged drawer dir has:", [k for k in ["entity","_entity","raw","_raw","articulation","_articulation"] if hasattr(self.drawer, k)])
+        
         self.add_to_state_dict_registry(self.drawer)
         self.handle_link = Link.merge(
             [links[0] for i, links in enumerate(handle_links)],
@@ -199,7 +197,6 @@ class MugCleanupEnv(BaseEnv):
             self.table_scene.initialize(env_idx)
 
             xyz = torch.zeros((b, 3))
-            # xyz[:, :2] = torch.rand((b, 2)) * 0.2 - 0.1
             xyz[:, 0] = torch.rand((b,1)) * 0.2 - 0.1
             xyz[:, 1] = torch.rand((b,1)) * 0.3 - 0.3
 
@@ -209,7 +206,6 @@ class MugCleanupEnv(BaseEnv):
 
             drawer_xyz = torch.zeros((b, 3))
             drawer_xyz[:, 0] = -0.3 + (torch.rand((b,1)) * 0.4 - 0.2)
-            # drawer_xyz[:, 1] = torch.rand((b,1)) * 0.6 - 0.3
             drawer_xyz[:, 1] = 0.3 + (torch.rand((b,1)) * 0.2 - 0.1)
             drawer_xyz[:, 2] = self.drawer_zs[env_idx]
             drawer_qs = random_quaternions(b, lock_x=True, lock_y=True, bounds=(-np.pi/4, np.pi/4))
@@ -245,6 +241,7 @@ class MugCleanupEnv(BaseEnv):
         )
         if self.gpu_sim_enabled:
             self.scene._gpu_apply_all()
+
 
     def evaluate(self):
         

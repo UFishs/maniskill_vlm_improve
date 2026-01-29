@@ -23,6 +23,7 @@ DEMO_DIR = Path(
         "demos",
     )
 )
+MY_ASSET_DIR = PACKAGE_DIR.parent.resolve()
 
 
 def format_path(p: str):

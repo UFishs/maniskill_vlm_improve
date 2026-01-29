@@ -19,3 +19,4 @@ from .pull_cube_tool import PullCubeToolEnv
 from .stack_pyramid import StackPyramidEnv
 from .stack_three import StackThreeEnv
 from .mug_cleanup import MugCleanupEnv
+from .dice_cleanup import DiceCleanupEnv

@@ -82,3 +82,30 @@ Return Format (use json format):
 Task Description:
 {task_desc}
 '''
+
+
+fix_insert_action_prompt = '''
+Target:
+You are a professional robot operator. You should analyze the provided frame, ground truth of the object and end effector, the task description and a series of action chunks that the robot will perform. The action chunk is described in the format of pd_ee_pose, where each action contains 7 dimensions: (x, y, z, r, p, y, gripper). The pd_ee_pose is the end effector pose of the robot in the world frame. The task is to fix the action chunk so that the robot can successfully complete this tiny part of the task.
+
+
+
+Analysis requirements:
+1. Watch the frame carefully, the given ground truth information, the task description and the action chunk.
+2. The ground truth contains the position of the objects and the end effector in the world frame.
+3. Your output must **strictly follow the Return Format below** and **only output** four lines (field name and value). Do not add any additional commentary.
+4. You can modify the action chunk as you want, such as inserting new actions, deleting wrong actions, or modifying the existing actions.
+5. If you think the action chunk is correct and can successfully complete the task, you can just output the original action chunk.
+6. When you output the action chunk, all the values should be rounded to 6 decimal places strictly. And all the actions should be in the pd_ee_pose format, i.e., (x, y, z, r, p, y, gripper), which should contain 7 dimensions strictly. The gripper value should be -1 for closed gripper and 1 for open gripper.
+7. Remember that the action chunk you need to fix is only a tiny part of the whole task. You should only focus on this part and make sure the robot can successfully complete this part of the task. Do not consider the other parts of the task. Do not output too few or too many actions, the number of the actions should be similar to the original action chunk.
+
+
+Return Format (use json format):
+{{
+    "action_chunk": [sequence of pd_ee_pose action that would have led to successful task completion, using json list format]
+    "evidence": [Explanation of the key evidence that led you to this action chunk]
+}}
+
+Task Description:
+{task_desc}
+'''

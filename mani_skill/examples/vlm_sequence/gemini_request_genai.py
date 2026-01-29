@@ -109,3 +109,60 @@ def request_task_stage(prompt_template, prompt_content, images):
     json_response = json.loads(response_text)
     json_response['time_taken'] = time_taken
     return json_response
+
+
+def request_fix_insert_in_action_chunk(prompt_template, prompt_content, images):
+    '''
+    prompt_content: dict
+    '''
+    start_time = time.time()
+
+    # task description
+    completed_prompt = prompt_template.format(
+        task_desc=prompt_content['task_desc'],
+    )
+
+    # ground truth
+    completed_prompt += '''
+Ground Truth Information:
+'''
+
+    for name, info in prompt_content['ground_truth'].items():
+        completed_prompt += f"{name}: {info}\n"
+
+    completed_prompt += '\n'
+
+    # action chunk
+    completed_prompt += f'Action Chunk:\n{prompt_content["action_chunk"]}\n\n'
+
+
+    contents = []
+    contents.append(completed_prompt)
+
+    for id, image in enumerate(images):
+
+        contents.append(
+            types.Part.from_bytes(
+                data=pil_to_bytes(image),
+                mime_type='image/png'
+            )
+        )
+        if id == 0:
+            contents.append(f"Base camera view (top down).")
+        elif id == 1:
+            contents.append(f"Hand camera view (fixed on the hand).")
+        else:
+            raise ValueError("Only support two images.")
+
+    response = client.models.generate_content(
+        model=model_name,
+        contents=contents
+    )
+
+    end_time = time.time()
+    time_taken = end_time - start_time
+    response_text = response.text
+    response_text = response_text.replace('```json', '').replace('```', '')
+    json_response = json.loads(response_text)
+    json_response['time_taken'] = time_taken
+    return json_response

@@ -2,13 +2,13 @@ import gymnasium as gym
 
 class PrimitiveRecord(gym.Wrapper):
 
-    def __init__(self, env, base_record_env=None, primitive_record_envs=None):
+    def __init__(self, env, base_record_env=None, primitive_record_envs=None, primitive_list=['stage_1', 'stage_2', 'stage_3', 'stage_4']):
         super().__init__(env)
 
         self.env = env
         self.base_record_env = base_record_env
         self.primitive_record_envs = primitive_record_envs
-        self.primitive_list = ['stage_1', 'stage_2', 'stage_3', 'stage_4']
+        self.primitive_list = primitive_list
         self.current_stage = 0
         self.record = False
         self.last_stage = None

@@ -13,7 +13,7 @@ def _load_ycb_dataset():
 
 
 def get_ycb_builder(
-    scene: ManiSkillScene, id: str, add_collision: bool = True, add_visual: bool = True
+    scene: ManiSkillScene, id: str, add_collision: bool = True, add_visual: bool = True, scale = None,
 ):
     if "YCB" not in YCB_DATASET:
         _load_ycb_dataset()
@@ -24,7 +24,8 @@ def get_ycb_builder(
     metadata = model_db[id]
     density = metadata.get("density", 1000)
     model_scales = metadata.get("scales", [1.0])
-    scale = model_scales[0]
+    if scale is None:
+        scale = model_scales[0]
     physical_material = None
     (metadata["bbox"]["max"][2] - metadata["bbox"]["min"][2]) * scale
     model_dir = ASSET_DIR / "assets/mani_skill2_ycb/models" / id

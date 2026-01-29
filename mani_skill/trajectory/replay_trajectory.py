@@ -311,6 +311,9 @@ def replay_cpu_sim(
                     )
             # Original actions to replay
             ori_actions = trajectories[traj_id]["actions"][:]
+            # if not tensor, turn to tensor
+            if not isinstance(ori_actions[0], torch.Tensor):
+                ori_actions = torch.tensor(ori_actions)
             info = {}
 
             # Without conversion between control modes
@@ -380,7 +383,7 @@ def replay_cpu_sim(
                 if args.verbose:
                     print("info", info)
         else:
-            env.flush_video(save=False)
+            env.flush_video(save=True)
             tqdm.write(f"Episode {episode_id} is not replayed successfully. Skipping")
 
     return ReplayResult(

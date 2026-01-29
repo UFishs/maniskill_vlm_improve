@@ -15,7 +15,7 @@ from mani_skill.utils.structs.types import Array
 
 
 def get_actor_builder(
-    scene: ManiSkillScene, id: str, add_collision: bool = True, add_visual: bool = True
+    scene: ManiSkillScene, id: str, add_collision: bool = True, add_visual: bool = True, scale=None,
 ) -> ActorBuilder:
     """Returns an :py:class:`~mani_skill.utils.building.actor_builder.ActorBuilder` given an ID specifying which dataset/source and then the ID of the asset.
 
@@ -36,7 +36,7 @@ def get_actor_builder(
         from mani_skill.utils.building.actors.ycb import get_ycb_builder
 
         builder = get_ycb_builder(
-            scene=scene, id=actor_id, add_collision=add_collision, add_visual=add_visual
+            scene=scene, id=actor_id, add_collision=add_collision, add_visual=add_visual, scale=scale,
         )
     else:
         raise RuntimeError(f"No dataset with id {dataset_source} was found")

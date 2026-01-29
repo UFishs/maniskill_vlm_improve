@@ -322,7 +322,7 @@ def from_pd_joint_delta_pos(
 
         ori_env.step(ori_action)
 
-        output_action_dict["arm"] = arm_action
+        output_action_dict["arm"] = arm_action.squeeze()
         output_action = controller.from_action_dict(
             common.to_tensor(output_action_dict, device=env.device)
         )

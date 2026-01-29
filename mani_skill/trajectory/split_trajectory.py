@@ -273,7 +273,7 @@ def replay_cpu_sim(
                 if pbar is not None:
                     pbar.update()
                 _, _, _, truncated, info = env.step(a)
-                if current_stage < 5 and info[f'stage_{current_stage}_success']:
+                if current_stage < env.stage_cnt + 1 and info[f'stage_{current_stage}_success']:
                     temp_segments.append([last_t, min(t+10, n)])
                     current_stage += 1
                     last_t = t
@@ -387,8 +387,8 @@ def _main(
     save_dir = args.save_dir
     os.makedirs(save_dir, exist_ok=True)
 
-    names = [1, 2, 3, 4]
-    # segments: [episode_id, 4, 2]
+    names = list(range(1, env.stage_cnt + 1))
+    # segments: [episode_id, stage_cnt, 2]
     for name in names:
         new_file_name = os.path.join(save_dir, f"stage_{name}.h5")
         new_json_path = os.path.join(save_dir, f"stage_{name}.json")

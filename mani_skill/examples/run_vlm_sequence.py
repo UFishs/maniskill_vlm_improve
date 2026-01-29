@@ -17,9 +17,7 @@ from mani_skill.utils.wrappers.record import RecordEpisode
 import tyro
 from dataclasses import dataclass, field
 
-from mani_skill.examples.vlm_sequence.utils import PrimitiveExecutor, parse_primitives
-from mani_skill.examples.vlm_sequence.gemini_request_genai import request_vlm_sequence
-from mani_skill.examples.vlm_sequence.prompts import vlm_sequence_prompt
+from mani_skill.examples.vlm_sequence.utils import PrimitiveExecutor, parse_primitives, request_action
 
 from PIL import Image
 import time
@@ -50,7 +48,8 @@ class Args:
     must_success: bool = False
     num_rollout: int = 10
     traj_name: str = "trajectory"
-
+    control_freq: int = 20
+    request_when_changing_stage: bool = False
 
 def parse_args() -> Args:
     return tyro.cli(Args)
@@ -63,6 +62,7 @@ def main(args: Args):
         control_mode=args.control_mode,
         reward_mode="none",
         render_mode="rgb_array",
+        sim_config=dict(control_freq=args.control_freq),
     )
     env = RecordEpisode(
         env,
@@ -82,7 +82,7 @@ def main(args: Args):
     successes = 0
 
     while True:
-        code = solve(env, obs, debug=False, vis=False)
+        code = solve(env, obs, env_id=args.env_id, debug=False, vis=False, request_when_changing_stage=args.request_when_changing_stage)
         attempts += 1
 
         if code == "success":
@@ -133,6 +133,7 @@ def main(args: Args):
             control_mode=args.control_mode,
             reward_mode="none",
             render_mode="rgb_array",
+            sim_config=dict(control_freq=args.control_freq),
         )
         env = RecordEpisode(
             env,
@@ -157,48 +158,8 @@ def main(args: Args):
         env.close()
         del env
 
-def request_action(env, obs):
 
-    if 'sensor_data' in obs:
-        images = [Image.fromarray(obs['sensor_data']['base_camera']['rgb'][0].cpu().numpy())]
-    elif 'rgb' in obs:
-        images = [Image.fromarray(obs['rgb'][0][-1][...,:3])]
-    else:
-        image = obs['base_camera'][0][-1]
-        image = np.array(image * 255, dtype=np.uint8).transpose(1, 2, 0)
-        images = [Image.fromarray(image)]
-    prompt_content = env.unwrapped.get_prompt_content()
-
-
-    # # read from temp/
-    # with open('temp/gemini_response.json', 'r') as f:
-    #     json_response = json.load(f)
-
-
-    while True:
-        try:
-            json_response = request_vlm_sequence(vlm_sequence_prompt, prompt_content, images)
-        except Exception as e:
-            print("Error: ", e)
-            time.sleep(5)
-            continue
-        break
-
-    # record all the info in temp/
-    with open('temp/ground_truth.json', 'w') as f:
-        json.dump(prompt_content['ground_truth'], f, indent=4)
-    with open('temp/gemini_response.json', 'w') as f:
-        json.dump(json_response, f, indent=4)
-    # save images
-    for i, img in enumerate(images):
-        img.save(f'temp/frame_{i}.png')
-
-    primitive_list = json_response['primitives']
-    parsed_primitives = parse_primitives(primitive_list)
-    return parsed_primitives
-
-
-def solve(env: BaseEnv, obs, debug=False, vis=False):
+def solve(env: BaseEnv, obs, env_id, debug=False, vis=False, request_when_changing_stage=False):
     assert env.unwrapped.control_mode in [
         "pd_joint_pos",
         "pd_joint_delta_pos",
@@ -217,10 +178,10 @@ def solve(env: BaseEnv, obs, debug=False, vis=False):
         joint_vel_limits=0.5,
     )
 
-    primitives = request_action(env, obs)
-    executor = PrimitiveExecutor(primitives, env, planner)
+    primitives = request_action(env, obs, suffix="_s0")
+    executor = PrimitiveExecutor(primitives, env, planner, env_id, request_when_changing_stage=request_when_changing_stage)
 
-    res = executor.run()
+    res = executor.run(begin_obs=obs)
     if res is not None and res != -1:
         now_obs, reward, terminated, truncated, info = res
 

@@ -191,6 +191,29 @@ class StackThreeEnv(BaseEnv):
             "stage_4_success": stage_4_success,
             "success": success,
         }
+    
+    def check_stage(self):
+        info = self.evaluate()
+        if info['success']:
+            return 4
+        
+        if not info['stage_2_success']:
+            if info['stage_1_success']:
+                return 1
+            else:
+                return 0
+
+        if not info['stage_4_success']:
+            if info['stage_3_success']:
+                return 3
+            else:
+                return 2
+
+        return 0
+    
+    @property
+    def stage_cnt(self):
+        return 4
 
     def _get_obs_extra(self, info: Dict):
         obs = dict(tcp_pose=self.agent.tcp.pose.raw_pose)
@@ -269,5 +292,30 @@ class StackThreeEnv(BaseEnv):
                 'blue_cube_pos': self.cubeC.pose.p.cpu().numpy().tolist(),
                 'blue_cube_quat': self.cubeC.pose.q.cpu().numpy().tolist(),
                 'cube_half_size': 0.02
+            }
+        }
+    
+    def get_fix_prompt_content(self):
+        instruction_for_stage_id = [
+            'You have not picked up the red cube, you need to pick up the red cube first.',
+            'You have already grasped the red cube, now you need to place the red cube on top of the green cube.',
+            'You have placed the red cube on the green cube, now you need to pick up the blue cube.',
+            'You have already grasped the blue cube, now you need to place the blue cube on top of the red cube.'
+            'The task is completed, you have successfully stacked the blue cube on the red cube.'
+        ]
+        current_stage = self.check_stage()
+        return {
+            'task_desc': 'Stack the red cube on the green cube, and then stack the blue cube on the red cube to form a tower.',
+            'ground_truth': {
+                'current_stage': instruction_for_stage_id[current_stage],
+                'red_cube_pos': self.cubeA.pose.p.cpu().numpy().tolist(),
+                # 'red_cube_quat': self.cubeA.pose.q.cpu().numpy().tolist(),
+                'green_cube_pos': self.cubeB.pose.p.cpu().numpy().tolist(),
+                # 'green_cube_quat': self.cubeB.pose.q.cpu().numpy().tolist(),
+                'blue_cube_pos': self.cubeC.pose.p.cpu().numpy().tolist(),
+                # 'blue_cube_quat': self.cubeC.pose.q.cpu().numpy().tolist(),
+                'cube_half_size': 0.02,
+                'ee_pos': self.agent.tcp.pose.p.cpu().numpy().tolist(),
+                'ee_quat': self.agent.tcp.pose.q.cpu().numpy().tolist(),
             }
         }

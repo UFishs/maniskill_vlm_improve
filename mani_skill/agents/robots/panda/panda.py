@@ -234,6 +234,11 @@ class Panda(BaseAgent):
             self.robot.get_links(), self.ee_link_name
         )
 
+    @property
+    def ee_pose_at_robot_base(self): # in robot frame(root frame)
+        to_base = self.robot.pose.inv()
+        return to_base * (self.tcp.pose)
+
     def is_grasping(self, object: Actor, min_force=0.5, max_angle=85):
         """Check if the robot is grasping an object
 

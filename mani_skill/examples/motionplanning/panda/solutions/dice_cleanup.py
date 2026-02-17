@@ -16,10 +16,14 @@ import trimesh
 from mani_skill.utils.geometry.geometry import transform_points
 
 def solve(env: StackThreeEnv, seed=None, debug=False, vis=False):
+    # import ipdb; ipdb.set_trace()
+
     env.reset(seed=seed)
     assert env.unwrapped.control_mode in [
         "pd_joint_pos",
         "pd_joint_pos_vel",
+        "pd_ee_pose",
+        "pd_ee_delta_pose",
     ], env.unwrapped.control_mode
     planner = PandaArmMotionPlanningSolver(
         env,

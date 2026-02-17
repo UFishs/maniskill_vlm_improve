@@ -257,3 +257,54 @@ class Kinematics:
                 )
             else:
                 return None
+    
+    def compute_fk(self, qpos: torch.Tensor) -> Pose:
+        """Given joint positions, compute the end-effector pose.
+
+        This is the FK counterpart to the newer compute_ik() and follows the same
+        conventions / ordering assumptions:
+
+        - On GPU: uses pytorch_kinematics chain built from self.urdf_path and returns the
+        chain FK pose (root->end link) using rotation_conversions for quaternion conversion.
+        - On CPU: uses PinocchioModel built from self.urdf_path with joint/link order set to match
+        the kinematic chain; maps qpos into pmodel joint order via self.pmodel_active_joint_indices.
+
+        Args:
+            qpos (torch.Tensor): joint positions of each active joint in the articulation.
+                Shape (B, N) or (N,). This should be in the same joint ordering as used by
+                compute_ik() (i.e., the q0 you pass there).
+
+        Returns:
+            Pose: end-effector pose(s) in the same frame implied by the kinematic model.
+                Shape is batched if qpos is batched.
+        """
+        if qpos.ndim == 1:
+            qpos = qpos.unsqueeze(0)
+        assert qpos.ndim == 2, f"qpos must have shape (B, N) or (N,), got {qpos.shape}"
+
+        if self.use_gpu_ik:
+            # Mirror compute_ik GPU masking: only joints on the ancestor chain are relevant.
+            # (Assumes qpos is indexable by active indices the same way compute_ik does.)
+            qpos_chain = qpos[:, self.active_ancestor_joint_idxs].to(self.device)
+
+            tf_matrix = self.pk_chain.forward_kinematics(qpos_chain.float()).get_matrix()
+            pos = tf_matrix[:, :3, 3]
+            quat = rotation_conversions.matrix_to_quaternion(tf_matrix[:, :3, :3])
+
+            return Pose.create_from_pq(pos, quat, device=self.device)
+
+        # CPU FK via pinocchio
+        qpos_pmodel = qpos[:, self.pmodel_active_joint_indices].to(self.device)
+
+        # PinocchioModel is not batched in this wrapper, so loop and stack.
+        ps = []
+        qs = []
+        for i in range(qpos_pmodel.shape[0]):
+            self.pmodel.compute_forward_kinematics(qpos_pmodel[i].cpu().numpy())
+            ee_pose = self.pmodel.get_link_pose(self.end_link_idx)  # sapien Pose-like
+            ps.append(common.to_tensor(ee_pose.p, device=self.device))
+            qs.append(common.to_tensor(ee_pose.q, device=self.device))
+
+        pos = torch.stack(ps, dim=0)
+        quat = torch.stack(qs, dim=0)
+        return Pose.create_from_pq(pos, quat, device=self.device)

@@ -140,7 +140,7 @@ class PrimitiveExecutor:
             if primitive.type == "move":
 
                 # create obb by p,q
-                if self.env_id == 'StackThree-v1':
+                if self.env_id == 'StackThree-v1' or self.env_id == 'StackPyramid-v1':
                     if primitive.target_quat is not None:
                         obb = self.cube_to_obb(primitive.target_pos, primitive.target_quat, 0.02)
                         approaching = np.array([0, 0, -1])
@@ -208,10 +208,10 @@ class PrimitiveExecutor:
 
 
             elif primitive.type == "open":
-                res = self.planner.open_gripper(t=10)
+                res = self.planner.open_gripper(t=6)
             
             elif primitive.type == "close":
-                res = self.planner.close_gripper(t=10)
+                res = self.planner.close_gripper(t=6)
             
             else:
                 res = None
@@ -243,7 +243,7 @@ class PrimitiveExecutor:
         
         return res
     
-def request_fix_action(env, obs, action_chunk, ee_env):
+def request_fix_action(env, obs, action_chunk, ee_env, return_on_world_frame=True):
 
     if 'sensor_data' in obs:
         image_base = Image.fromarray(obs['sensor_data']['base_camera']['rgb'][0].cpu().numpy()) # (256, 256, 3)
@@ -309,6 +309,9 @@ def request_fix_action(env, obs, action_chunk, ee_env):
 
     fixed_action_chunk = json_response['action_chunk']  # list of [x, y, z, r, p, y, gripper]
     fixed_action_chunk = np.array(fixed_action_chunk)
+
+    if return_on_world_frame:
+        return fixed_action_chunk
 
     # convert back to robot base frame
     fixed_action_chunk_base = []

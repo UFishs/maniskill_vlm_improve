@@ -20,7 +20,10 @@ class BaseMotionPlanningSolver:
         print_env_info: bool = True,
         joint_vel_limits=0.9,
         joint_acc_limits=0.9,
+        record_envs = None,
     ):
+        self.record_envs = record_envs
+
         self.env = env
         self.base_env: BaseEnv = env.unwrapped
         self.env_agent: BaseAgent = self.base_env.agent

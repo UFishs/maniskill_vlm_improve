@@ -276,7 +276,7 @@ class StackThreeEnv(BaseEnv):
 
     def get_prompt_content(self):
         
-        if self.agent.controller.controllers['gripper'].qpos[0][0] < 0.02:
+        if self.agent.controller.controllers['gripper'].qpos[0][0] < 0.03:
             gripper_state = 'closed'
         else:
             gripper_state = 'open'
@@ -296,6 +296,20 @@ class StackThreeEnv(BaseEnv):
         }
     
     def get_fix_prompt_content(self):
+
+        if self.agent.controller.controllers['gripper'].qpos[0][0] < 0.03:
+            gripper_state = 'closed'
+        else:
+            gripper_state = 'open'
+
+        gripper_grasping_state = 'not grasp any cube'
+        if self.agent.is_grasping(self.cubeC)[0]:
+            gripper_grasping_state = 'has grasped cubeC'
+        elif self.agent.is_grasping(self.cubeB)[0]:
+            gripper_grasping_state = 'has grasped cubeB'
+        elif self.agent.is_grasping(self.cubeA)[0]:
+            gripper_grasping_state = 'has grasped cubeA'
+
         instruction_for_stage_id = [
             'You have not picked up the red cube, you need to pick up the red cube first.',
             'You have already grasped the red cube, now you need to place the red cube on top of the green cube.',
@@ -307,6 +321,7 @@ class StackThreeEnv(BaseEnv):
         return {
             'task_desc': 'Stack the red cube on the green cube, and then stack the blue cube on the red cube to form a tower.',
             'ground_truth': {
+                'additional_info': 'if the cube z coordinate is larger than 0.02, it means the cube is lifted.',
                 'current_stage': instruction_for_stage_id[current_stage],
                 'red_cube_pos': self.cubeA.pose.p.cpu().numpy().tolist(),
                 # 'red_cube_quat': self.cubeA.pose.q.cpu().numpy().tolist(),
@@ -317,5 +332,7 @@ class StackThreeEnv(BaseEnv):
                 'cube_half_size': 0.02,
                 'ee_pos': self.agent.tcp.pose.p.cpu().numpy().tolist(),
                 'ee_quat': self.agent.tcp.pose.q.cpu().numpy().tolist(),
+                'gripper_state': gripper_state,
+                'gripper_grasping_state': gripper_grasping_state,
             }
         }

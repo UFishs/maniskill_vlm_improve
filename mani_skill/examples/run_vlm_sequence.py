@@ -73,7 +73,7 @@ def main(args: Args):
         source_type="vlm_sequence",
         source_desc="planning with vlm_sequence"
     )
-    seed = 0
+    seed = 10
     obs, info = env.reset(seed=seed)
     pbar = tqdm.tqdm(total=args.num_rollout)
 

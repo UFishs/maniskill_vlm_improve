@@ -98,6 +98,7 @@ Analysis requirements:
 5. If you think the action chunk is correct and can successfully complete the task, you can just output the original action chunk.
 6. When you output the action chunk, all the values should be rounded to 6 decimal places strictly. And all the actions should be in the pd_ee_pose format, i.e., (x, y, z, r, p, y, gripper), which should contain 7 dimensions strictly. The gripper value should be -1 for closed gripper and 1 for open gripper.
 7. Remember that the action chunk you need to fix is only a tiny part of the whole task. You should only focus on this part and make sure the robot can successfully complete this part of the task. Do not consider the other parts of the task. Do not output too few or too many actions, the number of the actions should be similar to the original action chunk.
+8. Notice that the adjacent actions in the output action chunk should not differ too much. To be specific, for the coordinates of x, y, z, the variation between adjacent actions should not exceed 0.05. Try to output a complete and smooth trajectory as much as possible. When you finish the action chunk, always check the difference between adjacent actions to make sure they are smooth!
 
 
 Return Format (use json format):

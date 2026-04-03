@@ -311,9 +311,10 @@ def replay_cpu_sim(
                     )
             # Original actions to replay
             ori_actions = trajectories[traj_id]["actions"][:]
+            # import ipdb; ipdb.set_trace()
             # if not tensor, turn to tensor
-            if not isinstance(ori_actions[0], torch.Tensor):
-                ori_actions = torch.tensor(ori_actions)
+            # if not isinstance(ori_actions[0], torch.Tensor):
+            #     ori_actions = torch.tensor(ori_actions)
             info = {}
 
             # Without conversion between control modes

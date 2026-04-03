@@ -19,7 +19,7 @@ from mani_skill.utils.scene_builder.table import TableSceneBuilder
 from mani_skill.utils.structs.pose import Pose  
 from mani_skill.utils.logging_utils import logger
 
-@register_env("StackPyramid-v1", max_episode_steps=250)
+@register_env("StackPyramid-v1", max_episode_steps=350)
 class StackPyramidEnv(BaseEnv):
     """
     **Task Description:**
@@ -51,13 +51,17 @@ class StackPyramidEnv(BaseEnv):
 
     @property
     def _default_sensor_configs(self):
-        pose = sapien_utils.look_at(eye=[0.3, 0, 0.4], target=[-0.05, 0, 0.1])
-        return [CameraConfig("base_camera", pose, 128, 128, np.pi / 2, 0.01, 100)]
+        # pose = sapien_utils.look_at(eye=[0.3, 0, 0.4], target=[-0.05, 0, 0.1])
+        # return [CameraConfig("base_camera", pose, 128, 128, np.pi / 2, 0.01, 100)]
+        pose = sapien_utils.look_at(eye=[0.5, 0, 0.6], target=[-0.1, 0, -0.1])
+        return [CameraConfig("base_camera", pose, 256, 256, np.pi / 3, 0.01, 100)]
 
     @property
     def _default_human_render_camera_configs(self):
-        pose = sapien_utils.look_at([0.6, 0.7, 0.6], [0.0, 0.0, 0.35])
-        return CameraConfig("render_camera", pose, 512, 512, 1, 0.01, 100)
+        # pose = sapien_utils.look_at([0.6, 0.7, 0.6], [0.0, 0.0, 0.35])
+        # return CameraConfig("render_camera", pose, 512, 512, 1, 0.01, 100)
+        pose = sapien_utils.look_at(eye=[0.5, 0, 0.6], target=[-0.1, 0, -0.1])
+        return [CameraConfig("render_camera", pose, 256, 256, np.pi / 3, 0.01, 100)]
 
 
     def _load_scene(self, options: dict):
@@ -135,7 +139,7 @@ class StackPyramidEnv(BaseEnv):
         def evaluate_cube_distance(offset, cube_a, cube_b, top_or_next):
             xy_flag = (torch.linalg.norm(offset[..., :2], axis=1) 
                        <= torch.linalg.norm(2*self.cube_half_size[:2]) 
-                       + 0.005
+                       + 0.01
                        )
             z_flag = torch.abs(offset[..., 2]) > 0.02
             if top_or_next == "top":
@@ -155,9 +159,36 @@ class StackPyramidEnv(BaseEnv):
         success_C_B = evaluate_cube_distance(offset_BC, self.cubeC, self.cubeB, "top")
         success_C_A = evaluate_cube_distance(offset_AC, self.cubeC, self.cubeA, "top")
         success = torch.logical_and(success_A_B, torch.logical_and(success_C_B, success_C_A))
+
+
+        is_cubeC_lifted = pos_C[..., 2] > 0.08
+        is_cubeC_grasped = self.agent.is_grasping(self.cubeC)
+        stage_2_success = torch.logical_and(is_cubeC_lifted, is_cubeC_grasped)
+
+
         return {
+            "stage_1_success": success_A_B,
+            "stage_2_success": stage_2_success,
+            "stage_3_success": success,
             "success": success,
         }
+    
+    def check_stage(self):
+        info = self.evaluate()
+        if info['success']:
+            return 3
+    
+        if info['stage_1_success']:
+            if info['stage_2_success']:
+                return 2
+            else:
+                return 1
+            
+        return 0
+
+    @property
+    def stage_cnt(self):
+        return 3
 
     def _get_obs_extra(self, info: Dict):
         obs = dict(tcp_pose=self.agent.tcp.pose.raw_pose)
@@ -175,3 +206,32 @@ class StackPyramidEnv(BaseEnv):
             )
         return obs
     
+
+    def get_prompt_content(self):
+
+        if self.agent.controller.controllers['gripper'].qpos[0][0] < 0.03:
+            gripper_state = 'closed'
+        else:
+            gripper_state = 'open'
+
+        instruction_for_stage_id = [
+            'You need to push the red cube next to the green cube (the distance can be half of the cube_half_size to ensure the cubes are next to each other) at very first.',
+            'The red and green cube are already next to each other. Now you need to grasp and lift up the blue cube.(at least z=0.1)',
+            'The blue cube is already lifted up. Now you need to place the blue cube on top of the red and green cube (which should be in the middle, like (red_cube_pos + green_cube_pos)/2), and make sure the blue cube is static and not grasped by the robot.',
+        ]
+
+        return {
+            'task_desc': 'Push the red cube next to the green cube, then stack the blue cube on top of the red and green cube.',
+            'ground_truth': {
+                'additional_info': 'In order to push the red cube, the solution is that move the gripper above the red cube, close the gripper(notice that NOT grasping the cube), then move downwards to the red cube (z = half of the cube_half_size) to make a force to squeeze the red cube, then move the gripper next to the green cube. In this situation, the red cube will be pushed next to the green cube.',
+                'current_stage': instruction_for_stage_id[self.check_stage()],
+                'gripper_state': gripper_state,
+                'red_cube_pos': self.cubeA.pose.p.cpu().numpy().tolist(),
+                'red_cube_quat': self.cubeA.pose.q.cpu().numpy().tolist(),
+                'green_cube_pos': self.cubeB.pose.p.cpu().numpy().tolist(),
+                'green_cube_quat': self.cubeB.pose.q.cpu().numpy().tolist(),
+                'blue_cube_pos': self.cubeC.pose.p.cpu().numpy().tolist(),
+                'blue_cube_quat': self.cubeC.pose.q.cpu().numpy().tolist(),
+                'cube_half_size': 0.02
+            }
+        }

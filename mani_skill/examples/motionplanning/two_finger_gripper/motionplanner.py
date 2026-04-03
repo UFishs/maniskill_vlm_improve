@@ -22,8 +22,9 @@ class TwoFingerGripperMotionPlanningSolver(BaseMotionPlanningSolver):
         print_env_info: bool = True,
         joint_vel_limits=0.9,
         joint_acc_limits=0.9,
+        **kwargs,
     ):
-        super().__init__(env, debug, vis, base_pose, print_env_info, joint_vel_limits, joint_acc_limits)
+        super().__init__(env, debug, vis, base_pose, print_env_info, joint_vel_limits, joint_acc_limits, **kwargs)
 
         if self.env_agent.controller.controllers['gripper'].qpos[0][0] < 0.02:
             self.gripper_state = self.CLOSED
@@ -58,6 +59,10 @@ class TwoFingerGripperMotionPlanningSolver(BaseMotionPlanningSolver):
                 action = self.qpos_action_to_pd_joint_delta_pos_action(action)
 
             obs, reward, terminated, truncated, info = self.env.step(action)
+            if self.record_envs is not None:
+                for rec_env in self.record_envs:
+                    rec_env.step(action)
+
             self.elapsed_steps += 1
             if self.print_env_info:
                 print(
@@ -65,7 +70,7 @@ class TwoFingerGripperMotionPlanningSolver(BaseMotionPlanningSolver):
                 )
 
             if truncated:
-                return None
+                break
 
             if self.vis:
                 self.base_env.render_human()
@@ -86,6 +91,10 @@ class TwoFingerGripperMotionPlanningSolver(BaseMotionPlanningSolver):
                 action = self.qpos_action_to_pd_joint_delta_pos_action(action)
 
             obs, reward, terminated, truncated, info = self.env.step(action)
+            if self.record_envs is not None:
+                for rec_env in self.record_envs:
+                    rec_env.step(action)
+
             self.elapsed_steps += 1
             if self.print_env_info:
                 print(
@@ -110,6 +119,10 @@ class TwoFingerGripperMotionPlanningSolver(BaseMotionPlanningSolver):
                 action = self.qpos_action_to_pd_joint_delta_pos_action(action)
                 
             obs, reward, terminated, truncated, info = self.env.step(action)
+            if self.record_envs is not None:
+                for rec_env in self.record_envs:
+                    rec_env.step(action)
+
             self.elapsed_steps += 1
             if self.print_env_info:
                 print(

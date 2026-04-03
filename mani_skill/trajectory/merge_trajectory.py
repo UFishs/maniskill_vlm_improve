@@ -101,23 +101,30 @@ def main():
     
 
     
-    level_name = 'base'
+    # level_name = 'base'
     # level_name = 'stage_1'
     # level_name = 'stage_2'
-    # level_name = 'stage_3'
+    level_name = 'stage_3'
     # level_name = 'stage_4'
     merged_iter_idx = 0
-    env_name = 'mugcleanup'
+    # env_name = 'mugcleanup'
+    env_name = 'stackpyramid'
     # seeds = [1000, 2000, 3000, 4000, 5000, 6000]
-    seeds = [1000, 2000, 3000, 4000]
+    seeds = [2000, 3000, 4000]
 
 
     args.output_path = f'/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/{env_name}/system_collect/iter_{merged_iter_idx+1}_merge/iter_{merged_iter_idx+1}_{level_name}_merge.h5'
     base_traj_path = f'/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/{env_name}/system_collect/iter_{merged_iter_idx}_merge/iter_{merged_iter_idx}_{level_name}_merge.h5'
-    # if merged_iter_idx == 0:
+    if merged_iter_idx == 0:
         # base_traj_path = '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/demos/MugCleanup-v1/motionplanning/base_traj_200.rgb.pd_joint_delta_pos.physx_cpu.h5'
         # base_traj_path = '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/demos/MugCleanup-v1/motionplanning/split_200_pd_joint_delta_pos/stage_2.h5'
         # base_traj_path = '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/demos/MugCleanup-v1/motionplanning/split_200_pd_joint_delta_pos/stage_3.h5'
+        
+        base_traj_path = '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/demos/StackPyramid-v1/motionplanning/base_traj_200.rgb.pd_joint_delta_pos.physx_cpu.h5'
+        base_traj_path = '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/demos/StackPyramid-v1/motionplanning/split_200_pd_joint_delta_pos/stage_1.h5'
+        base_traj_path = '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/demos/StackPyramid-v1/motionplanning/split_200_pd_joint_delta_pos/stage_2.h5'
+        base_traj_path = '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/demos/StackPyramid-v1/motionplanning/split_200_pd_joint_delta_pos/stage_3.h5'
+
         
 
     traj_paths = [base_traj_path]
@@ -167,6 +174,23 @@ def main():
     #     15
     # ]
 
+    # args.output_path = '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/mugcleanup/bootstrapped/iter_1_merge/bootstrapped_iter_1_merge.h5'
+    # traj_paths = [
+    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/demos/MugCleanup-v1/motionplanning/base_traj_200.rgb.pd_joint_delta_pos.physx_cpu.h5',
+    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/mugcleanup/bootstrapped/iter_1_seed_3000/bootstrapped_record/iter_1_bootstrapped.h5',
+    # ]
+    # num_demos = None
+
+    # args.output_path = '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/stackthree/bootstrapped/iter_1_merge/bootstrapped_iter_1_merge.h5'
+    # traj_paths = [
+    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/demos/StackThree-v1/motionplanning/base_traj_200.rgb.pd_joint_delta_pos.physx_cpu.h5',
+    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/stackthree/bootstrapped/iter_1_seed_1000/bootstrapped_record/iter_1_bootstrapped.h5',
+    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/stackthree/bootstrapped/iter_1_seed_2000/bootstrapped_record/iter_1_bootstrapped.h5',
+    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/stackthree/bootstrapped/iter_1_seed_3000/bootstrapped_record/iter_1_bootstrapped.h5',
+    #     '/cephfs/gyshare/ruizihang/maniskill_vlm_improve/diffusion_policy/data/eval/stackthree/bootstrapped/iter_1_seed_4000/bootstrapped_record/iter_1_bootstrapped.h5'
+
+    # ]
+    # num_demos = None
 
 
 

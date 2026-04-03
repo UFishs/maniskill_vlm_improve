@@ -289,6 +289,12 @@ def replay_cpu_sim(
                 success = success and (not truncated)
 
             if success or args.allow_failure:
+
+
+                if len(temp_segments) < env.stage_cnt:
+                    print(f"Only found {len(temp_segments)} segments but there are {env.stage_cnt} stages, skipping this trajectory Episode ID: {episode_id}")
+                    continue
+
                 successful_replays += 1
                 segments.append(temp_segments)
                 episode_id_to_segment_id[episode_id] = len(segments) - 1

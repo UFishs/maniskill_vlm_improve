@@ -33,35 +33,38 @@ class PrimitiveRecord(gym.Wrapper):
         obs, rew, terminated, truncated, info = super().step(action)
 
         if self.record:
-            assert self.base_record_env is not None and self.primitive_record_envs is not None
+            assert self.base_record_env is not None or self.primitive_record_envs is not None
 
-            self.base_record_env.step(action)
-            if self.current_stage < len(self.primitive_list):
-                self.primitive_record_envs[self.primitive_list[self.current_stage]].step(action)
-            
-            if self.last_stage is not None and self.last_cnt != -1:
-                self.primitive_record_envs[self.last_stage].step(action)
-                self.last_cnt -= 1
-            
-            if self.last_stage is not None and self.last_cnt == 0:
-                self.last_stage = None
-                self.last_cnt = -1
+            if self.base_record_env is not None:
+                self.base_record_env.step(action)
 
-            if self.current_stage < len(self.primitive_list) and info[f'{self.primitive_list[self.current_stage]}_success']:
-
-                self.last_stage = self.primitive_list[self.current_stage]
-                self.last_cnt = self.required_cnt
-
-                self.current_stage += 1
+            if self.primitive_record_envs is not None:
                 if self.current_stage < len(self.primitive_list):
-                    # print(f"change from {self.primitive_list[self.current_stage - 1]} to {self.primitive_list[self.current_stage]}")
-                    self.primitive_record_envs[self.primitive_list[self.current_stage]].reset(
-                        options={
-                            'reset_to_env_states': {
-                                'env_states': self.env.unwrapped.get_state_dict(),
+                    self.primitive_record_envs[self.primitive_list[self.current_stage]].step(action)
+                
+                if self.last_stage is not None and self.last_cnt != -1:
+                    self.primitive_record_envs[self.last_stage].step(action)
+                    self.last_cnt -= 1
+                
+                if self.last_stage is not None and self.last_cnt == 0:
+                    self.last_stage = None
+                    self.last_cnt = -1
+
+                if self.current_stage < len(self.primitive_list) and info[f'{self.primitive_list[self.current_stage]}_success']:
+
+                    self.last_stage = self.primitive_list[self.current_stage]
+                    self.last_cnt = self.required_cnt
+
+                    self.current_stage += 1
+                    if self.current_stage < len(self.primitive_list):
+                        # print(f"change from {self.primitive_list[self.current_stage - 1]} to {self.primitive_list[self.current_stage]}")
+                        self.primitive_record_envs[self.primitive_list[self.current_stage]].reset(
+                            options={
+                                'reset_to_env_states': {
+                                    'env_states': self.env.unwrapped.get_state_dict(),
+                                }
                             }
-                        }
-                    )
+                        )
 
         return obs, rew, terminated, truncated, info
 
